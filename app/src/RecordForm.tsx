@@ -3,6 +3,7 @@ import { Job, Stage, stages, stageName } from "./types";
 import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 import { ApiError } from "./api";
+import { FormSelect } from "./FormSelect";
 interface Props {
   job?: Job;
   target?: Stage;
@@ -128,9 +129,16 @@ export function RecordForm({
         {field("行动内容", "action")}
         <label className="field">
           <span className="field-label">时间类型</span>
-          <select
+          <FormSelect
             className="form-control"
             aria-label="时间类型"
+            hint={
+              data.dateType === "deadline"
+                ? "最迟完成时间，例如测评提交或 Offer 答复期限。"
+                : data.dateType === "appointment"
+                  ? "约定参加的时间，例如面试；时间已过会提示待更新。"
+                  : "先记下行动，日期和具体时间可以稍后补充。"
+            }
             value={data.dateType}
             onChange={(e) => {
               update("dateType", e.target.value);
@@ -143,7 +151,7 @@ export function RecordForm({
             <option value="none">暂不设置</option>
             <option value="deadline">截止时间</option>
             <option value="appointment">预约时间</option>
-          </select>
+          </FormSelect>
         </label>
         {data.dateType !== "none" && (
           <>
@@ -303,9 +311,13 @@ export function RecordForm({
                   <div className="field-grid">
                     <label className="field">
                       <span className="field-label">目标阶段</span>
-                      <select
+                      <FormSelect
                         className="form-control"
                         aria-label="目标阶段"
+                        hint={
+                          stages.find((s) => s.id === data.stage)?.hint ||
+                          "选择这次申请当前所处的环节。"
+                        }
                         value={data.stage}
                         onChange={(e) => {
                           const stage = e.target.value as Stage;
@@ -338,7 +350,7 @@ export function RecordForm({
                             {s.name}
                           </option>
                         ))}
-                      </select>
+                      </FormSelect>
                     </label>
                     <label
                       className={`field ${errors.status ? "has-error" : ""}`}
@@ -346,10 +358,29 @@ export function RecordForm({
                       <span className="field-label">
                         {data.stage === "result" ? "求职结果" : "阶段状态"}
                       </span>
-                      <select
+                      <FormSelect
                         className="form-control"
                         aria-label={
                           data.stage === "result" ? "求职结果" : "阶段状态"
+                        }
+                        hint={
+                          data.stage === "result"
+                            ? {
+                                offer: "收到录用通知，之后可记录接受或婉拒。",
+                                rejected: "招聘方已明确告知未通过。",
+                                withdrawn: "由你主动结束本次申请。",
+                              }[data.status] ||
+                              "请选择明确结果；未收到回复不等于未通过。"
+                            : {
+                                待投递: "已记录意向岗位，还没有提交申请。",
+                                已投递: "申请已提交，等待招聘方回复。",
+                                待安排: "还没有确定本轮的具体安排。",
+                                待完成: "本轮仍有需要参加或提交的事项。",
+                                待反馈:
+                                  waiting && job?.action
+                                    ? "保存时会一并完成当前行动，并开始等待反馈。"
+                                    : "本轮已处理，正在等待招聘方反馈。",
+                              }[data.status] || "选择当前环节的进展状态。"
                         }
                         value={data.status}
                         onChange={(e) => update("status", e.target.value)}
@@ -376,7 +407,7 @@ export function RecordForm({
                             {t}
                           </option>
                         ))}
-                      </select>
+                      </FormSelect>
                       <span className="field-error">{errors.status}</span>
                     </label>
                     {field("轮次", "round")}

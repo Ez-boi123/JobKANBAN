@@ -107,6 +107,82 @@
 button:disabled {
   cursor: not-allowed;
 }
+.form-select {
+  min-width: 0;
+}
+.form-select-control {
+  position: relative;
+}
+.form-select-control select.form-control {
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  padding: 0 40px 0 13px;
+  border: 1px solid #d7e0ed;
+  border-radius: 8px;
+  background: #fff;
+  color: #344660;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+}
+.form-select-control select:hover:not(:disabled) {
+  border-color: #94afe6;
+  background: #fafcff;
+}
+.form-select-control select:focus-visible {
+  outline: none;
+  border-color: #3468e8;
+  box-shadow: 0 0 0 3px #3468e81a;
+}
+.form-select-chevron {
+  position: absolute;
+  right: 13px;
+  top: 12px;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: #7c8da8;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.form-select-control:focus-within .form-select-chevron {
+  stroke: #3468e8;
+}
+.form-select-control select:disabled {
+  cursor: not-allowed;
+  color: #97a3b5;
+  background: #f3f5f9;
+}
+.form-select-control option {
+  color: #344660;
+  background: #fff;
+  font-weight: 400;
+  padding: 10px 13px;
+}
+.form-select-control option:checked {
+  color: #245dcc;
+  background: #edf3ff;
+  font-weight: 600;
+}
+.form-select-hint {
+  display: block;
+  margin-top: 7px;
+  color: #7b899e;
+  font-size: 11px;
+  line-height: 1.7;
+  min-height: 19px;
+}
+.has-error .form-select-control select {
+  border-color: #c96764;
+  background: #fffafa;
+}
 button:focus-visible,
 a:focus-visible,
 [role="button"]:focus-visible {
