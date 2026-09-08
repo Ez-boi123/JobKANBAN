@@ -335,3 +335,30 @@ a:focus-visible,
     stroke: #3468e8;
   }
 }
+
+/* The same active-field treatment for mouse, keyboard and picker interaction. */
+#root :is(input.form-control, textarea.form-control, select.form-control):focus:not(:disabled),
+#root .form-select-control select:open,
+#root .search-control:focus-within {
+  outline: none;
+  border-color: #3468e8;
+  box-shadow: 0 0 0 3px rgb(52 104 232 / 16%);
+  background-color: #fff;
+}
+#root :is(input.form-control, textarea.form-control, select.form-control) {
+  transition: border-color .15s ease, box-shadow .15s ease;
+  caret-color: #3468e8;
+}
+#root .field:focus-within > .field-label,
+#root .search-control:focus-within > svg {
+  color: #3468e8;
+}
+#root .search-control input:focus {
+  outline: none;
+  box-shadow: none;
+  caret-color: #3468e8;
+}
+#root .archive-toggle input:focus + .toggle-track {
+  box-shadow: 0 0 0 3px rgb(52 104 232 / 16%);
+  outline: 1px solid #3468e8;
+}
