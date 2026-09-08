@@ -49,6 +49,13 @@ try {
         .getByLabel("时间类型", { exact: true })
         .selectOption("appointment");
     const control = page.getByLabel(name, { exact: true });
+    const spacing = await control.evaluate((input) => {
+      const icon = input.parentElement.querySelector('.date-time-icon svg').getBoundingClientRect();
+      const rect = input.getBoundingClientRect();
+      const style = getComputedStyle(input);
+      return rect.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft) - icon.right;
+    });
+    assert.ok(spacing >= 6, `${name}: date/time text must clear the leading icon, actual gap ${spacing}px`);
     await control.click({ position: { x: 8, y: 20 } });
     assert.ok(
       await page.evaluate((label) => window.pickerCalls.includes(label), name),
