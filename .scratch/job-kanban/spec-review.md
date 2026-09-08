@@ -11,3 +11,13 @@ Reviewed `449844b2ab858eaf0bf9604db238bb8ab30662bb...HEAD` (commit `0dd2da9`). T
 - **[P2] The visible timeline omits preserved action context — `src/Detail.tsx:16`.** Original specification: “历史保留原行动、时间类型、原时间和轮次”; full-stack acceptance: “检查可见历史”. Rendering only title, processing date and text hides the structured previous stage/status/round and action date type. Complete identically named actions in different rounds, or cancel one, then open history: entries cannot identify their originating round or distinguish appointment from deadline. Those fields exist in history snapshots but are never rendered. Show the saved context beside each action event.
 
 These findings supplement the reported passing API/browser checks; the two time-data issues were independently reproduced with the actual implementation functions.
+
+## Scoped re-review — 2026-09-08
+
+Reviewed fix commit `6d55638` against `0dd2da9`. Finding resolution: all three findings resolved; no outstanding findings in this scoped re-review.
+
+- Round dates now update only while the round is 待完成. Re-ran the original schedule/complete/follow-up reproduction: 一面 retains `2026-09-08T10:00:00+08:00` after adding the September 10 follow-up. Reviewed the new HTTP regression covering both basic editing and progress commands during feedback.
+- Waiting duration converts the stored timestamp to a Beijing calendar date. Re-ran the original early-morning example: output is now “等待反馈 0 天”. Reviewed the added browser assertion.
+- Visible history now renders original stage, round, appointment/deadline type and date; expandable entries also show prior round notes/results. Reviewed the JSX and browser assertion for “原行动信息：面试 · 第一轮 · 预约时间”.
+
+No obvious regressions found in these changes. Full build, 14 API tests and browser checks were reported passing by the implementation agent; this re-review independently repeated the two original function-level reproductions and inspected the scoped rendering/test changes. No application files changed.
