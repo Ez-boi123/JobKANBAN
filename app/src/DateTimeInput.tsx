@@ -56,7 +56,10 @@ export function DateTimeInput({ type, onValueChange, ...props }: Props) {
     const popup = panel.current!;
     function place() {
       const rect = input.current!.getBoundingClientRect();
-      const width = Math.min(300, window.innerWidth - 24);
+      const width = Math.min(
+        type === "date" ? rect.width : 300,
+        window.innerWidth - 24,
+      );
       const height =
         popup.getBoundingClientRect().height || (type === "date" ? 350 : 210);
       const below = rect.bottom + 8;
@@ -71,6 +74,9 @@ export function DateTimeInput({ type, onValueChange, ...props }: Props) {
     }
     popup.showPopover();
     place();
+    const resize = new ResizeObserver(place);
+    resize.observe(popup);
+    resize.observe(input.current!);
     const outside = (event: Event) => {
       const target = event.target as Node;
       if (
@@ -92,6 +98,7 @@ export function DateTimeInput({ type, onValueChange, ...props }: Props) {
     window.addEventListener("resize", place);
     window.addEventListener("scroll", place, true);
     return () => {
+      resize.disconnect();
       document.removeEventListener("pointerdown", outside, true);
       document.removeEventListener("focusin", outside, true);
       document.removeEventListener("keydown", key, true);
@@ -101,14 +108,22 @@ export function DateTimeInput({ type, onValueChange, ...props }: Props) {
   }, [open, type]);
   const first = new Date(Date.UTC(view.year, view.month, 1));
   const offset = (first.getUTCDay() + 6) % 7;
-  const days = Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(Date.UTC(view.year, view.month, index - offset + 1));
-    return {
-      value: `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`,
-      day: date.getUTCDate(),
-      current: date.getUTCMonth() === view.month,
-    };
-  });
+  const monthDays = new Date(
+    Date.UTC(view.year, view.month + 1, 0),
+  ).getUTCDate();
+  const days = Array.from(
+    { length: Math.ceil((offset + monthDays) / 7) * 7 },
+    (_, index) => {
+      const date = new Date(
+        Date.UTC(view.year, view.month, index - offset + 1),
+      );
+      return {
+        value: `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`,
+        day: date.getUTCDate(),
+        current: date.getUTCMonth() === view.month,
+      };
+    },
+  );
   const today = chinaDay();
   function moveMonth(delta: number) {
     const next = new Date(Date.UTC(view.year, view.month + delta, 1));

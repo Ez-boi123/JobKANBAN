@@ -117,6 +117,11 @@ try {
     await page.setViewportSize({ width, height: 800 });
     await date.click();
     const rect = await calendar.boundingBox();
+    const inputRect = await date.boundingBox();
+    assert.ok(
+      Math.abs(rect.width - inputRect.width) < 1,
+      "Calendar matches date input width",
+    );
     assert.ok(
       rect.x >= 0 &&
         rect.y >= 0 &&
@@ -130,6 +135,33 @@ try {
       "Escape closes calendar without closing record form",
     );
   }
+  await date.click();
+  for (const [year, month, cells] of [
+    [2021, 1, 28],
+    [2026, 8, 35],
+    [2026, 2, 42],
+  ]) {
+    await calendar
+      .getByLabel("年份", { exact: true })
+      .selectOption(String(year));
+    await calendar
+      .getByLabel("月份", { exact: true })
+      .selectOption(String(month));
+    assert.equal(
+      await calendar.locator(".date-picker-grid button").count(),
+      cells,
+      "Only weeks containing this month's dates are shown",
+    );
+    const lastWeek = await calendar
+      .locator(".date-picker-grid button")
+      .evaluateAll((buttons) =>
+        buttons
+          .slice(-7)
+          .some((button) => !button.classList.contains("outside-month")),
+      );
+    assert.equal(lastWeek, true);
+  }
+  await page.keyboard.press("Escape");
   console.log(
     "PASS board dropdowns, centered icons, calendar selection, time selection and popup placement",
   );
