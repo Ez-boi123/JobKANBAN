@@ -1,5 +1,5 @@
 @echo off
-cd /d "%~dp0"
+cd /d "%~dp0app"
 where node >nul 2>nul
 if errorlevel 1 (
   echo Please install Node.js 24.14 or newer first.

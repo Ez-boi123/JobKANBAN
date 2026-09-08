@@ -100,7 +100,7 @@ async function serveStatic(path, req, res, staticDir) {
   res.end(req.method === "HEAD" ? undefined : content);
 }
 export function createApp({
-  dbPath = resolve(root, "data/jobkanban.sqlite"),
+  dbPath = resolve(root, "../data/jobkanban.sqlite"),
   staticDir = resolve(root, "dist"),
   clock = () => new Date(),
 } = {}) {

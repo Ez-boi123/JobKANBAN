@@ -9,14 +9,14 @@ React 求职看板，Node.js 后端与 SQLite 数据库。蓝灰主界面、四�
 在项目目录执行一次：
 
 ```powershell
-npm install
+npm --prefix app install
 ```
 
 随后双击 `start.cmd`，或执行：
 
 ```powershell
-npm run build
-npm start
+npm --prefix app run build
+npm --prefix app start
 ```
 
 打开 [本地应用](http://127.0.0.1:3000)。保持服务窗口运行；按 Ctrl+C 停止。再次启动仍能读取此前记录。若 3000 端口已被占用，请先停止本应用的旧服务。
@@ -36,14 +36,37 @@ npm start
 ## 开发与检查
 
 ```powershell
-npm run typecheck
-npm run build
-npm test
-npm run test:browser
+npm --prefix app run typecheck
+npm --prefix app run build
+npm --prefix app test
+npm --prefix app run test:browser
 ```
 
-浏览器验收使用临时数据库并自行启动测试服务，不触碰实际记录；Windows 默认调用已安装的 Edge。其他环境先执行 `npx playwright install chromium`，并将 `PLAYWRIGHT_CHANNEL` 设为 `chromium`。
+浏览器验收使用临时数据库并自行启动测试服务，不触碰实际记录；Windows 默认调用已安装的 Edge。其他环境先执行 `cd app
+npx playwright install chromium`，并将 `PLAYWRIGHT_CHANNEL` 设为 `chromium`。
 
-`npm run dev` 提供 React 开发服务，需另一个窗口运行 `npm start` 启动后端。正式使用以 `start.cmd` 为入口。
+`npm --prefix app run dev` 提供 React 开发服务，需另一个窗口运行 `npm --prefix app start` 启动后端。正式使用以 `start.cmd` 为入口。
 
-前端源码在 `src`，后端在 `server`，测试在 `tests`。SQLite 使用 Node.js 内置接口，当前 Node 版本可能输出实验性提示；这不会中断启动。
+前端源码在 `app/src`，后端在 `app/server`，测试在 `app/tests`。SQLite 使用 Node.js 内置接口，当前 Node 版本可能输出实验性提示；这不会中断启动。
+
+
+## 项目目录
+
+```text
+JobKANBAN/
+├─ start.cmd          双击启动
+├─ README.md          使用说明
+├─ app/               应用代码、配置与开发依赖
+│  ├─ src/            React 前端
+│  ├─ server/         Node.js 后端
+│  ├─ tests/          自动化测试
+│  ├─ dist/           构建产物（自动生成）
+│  ├─ test-results/   测试截图（自动生成）
+│  └─ package.json    应用命令和依赖
+├─ data/              实际求职数据与运行日志
+├─ design/            原始设计预览及导出素材
+├─ docs/              产品与开发文档
+└─ .scratch/          本地规格与任务记录
+```
+
+根目录的 AGENTS.md 和 CONTEXT.md 用于项目约定与领域说明。旧审查报告中的源码路径对应调整前的位置；当前源码统一在 app/ 下。
