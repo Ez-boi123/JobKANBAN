@@ -113,7 +113,7 @@ export function RecordForm({
           aria-required={required}
           name={name}
           value={data[name]}
-          onChange={(e) => update(name, e.target.value)}
+          onValueChange={(value) => update(name, value)}
         />
       ) : (
         <input

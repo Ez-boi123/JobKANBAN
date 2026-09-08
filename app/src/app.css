@@ -157,7 +157,11 @@ button:disabled {
 .date-time-icon {
   position: absolute;
   left: 12px;
-  top: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  line-height: 1;
   color: #7289ad;
   pointer-events: none;
 }
@@ -165,9 +169,136 @@ button:disabled {
   color: #3468e8;
 }
 .date-time-control input::-webkit-calendar-picker-indicator {
-  cursor: pointer;
-  opacity: 0.55;
-  padding: 6px;
+  display: none;
+}
+.date-time-control input::-webkit-datetime-edit {
+  padding: 0;
+}
+.date-picker-panel {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #d7e2f3;
+  border-radius: 12px;
+  color: #344660;
+  background: #fff;
+  box-shadow:
+    0 12px 38px #1d386229,
+    0 2px 6px #1d38620a;
+  max-height: calc(100vh - 24px);
+  overflow: auto;
+}
+.date-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.date-picker-header .icon-button {
+  flex-shrink: 0;
+  width: 27px;
+  font-size: 23px;
+  color: #6e84a6;
+}
+.date-picker-header .form-select {
+  flex: 1;
+}
+.date-picker-panel
+  .form-select-compact
+  .form-select-control
+  select.form-control {
+  min-width: 0;
+  width: 100%;
+  height: 34px;
+  font-size: 12px;
+  padding-left: 9px;
+  padding-right: 28px;
+}
+.date-picker-panel .form-select-chevron {
+  top: 7px;
+  right: 6px;
+}
+.date-picker-week,
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  text-align: center;
+}
+.date-picker-week {
+  color: #8a99ae;
+  font-size: 11px;
+  padding-bottom: 8px;
+}
+.date-picker-grid button {
+  height: 33px;
+  border-radius: 7px;
+  font-size: 12px;
+  color: #344660;
+  background: #fff;
+  border: 1px solid transparent;
+}
+.date-picker-grid button.outside-month {
+  color: #bac3d0;
+}
+.date-picker-grid button:hover {
+  background: #edf3ff;
+  color: #245dcc;
+}
+.date-picker-grid button.today {
+  border-color: #adc4fa;
+  color: #3468e8;
+}
+.date-picker-grid button.selected {
+  background: #3468e8;
+  color: #fff;
+  border-color: #3468e8;
+}
+.date-picker-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #edf1f7;
+}
+.date-picker-footer .button {
+  height: 30px;
+  font-size: 12px;
+}
+.time-picker-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 3px 0 16px;
+}
+.time-picker-title span {
+  margin-left: auto;
+  font-size: 11px;
+  color: #8a99ae;
+  font-weight: 400;
+}
+.time-picker-fields {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+}
+.time-picker-fields label {
+  flex: 1;
+  min-width: 0;
+}
+.time-picker-fields label > span {
+  display: block;
+  color: #7b899e;
+  font-size: 11px;
+  margin-bottom: 6px;
+}
+.time-picker-fields b {
+  margin-bottom: 7px;
+  color: #8a99ae;
 }
 .date-time-control input:disabled {
   background: #f3f5f9;
@@ -337,7 +468,10 @@ a:focus-visible,
 }
 
 /* The same active-field treatment for mouse, keyboard and picker interaction. */
-#root :is(input.form-control, textarea.form-control, select.form-control):focus:not(:disabled),
+#root
+  :is(input.form-control, textarea.form-control, select.form-control):focus:not(
+    :disabled
+  ),
 #root .form-select-control select:open,
 #root .search-control:focus-within {
   outline: none;
@@ -346,7 +480,9 @@ a:focus-visible,
   background-color: #fff;
 }
 #root :is(input.form-control, textarea.form-control, select.form-control) {
-  transition: border-color .15s ease, box-shadow .15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   caret-color: #3468e8;
 }
 #root .field:focus-within > .field-label,
