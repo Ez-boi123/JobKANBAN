@@ -1,0 +1,130 @@
+/* NEXT STOP: product shell only. Detail dialogs and forms retain their original styles. */
+.sidebar,.app-shell{--journey-ink:#172a46;--journey-paper:#f8f9fc;--journey-blue:#3468e8;--journey-sand:#3468e8}
+.sidebar{width:208px;background:#fff;border:0;border-right:1px solid #e5e9f0;color:#202b42}
+.sidebar .brand{height:103px;padding:0 22px;gap:12px;color:#202b42;font-size:17px;letter-spacing:-.4px}
+.sidebar .brand-mark{height:32px;width:27px;gap:4px;align-items:flex-end;transform:skewY(-13deg)}
+.sidebar .brand-mark span{background:#3468e8;width:6px;border-radius:2px}
+.sidebar .brand-mark span:nth-child(1){height:17px}.sidebar .brand-mark span:nth-child(2){height:30px}.sidebar .brand-mark span:nth-child(3){height:24px}
+.sidebar .brand-wordmark{display:flex;flex-direction:column;gap:7px;min-width:0}
+.sidebar .brand-wordmark small{font-size:10px;font-weight:400;letter-spacing:1.5px;color:#7d8ba0}
+.sidebar .brand-light{font-weight:650}
+.sidebar .workspace-picker{margin:0 16px 32px;padding:14px 10px;border-color:#e1e7f1;background:#fff;border-radius:10px;gap:9px}
+.sidebar .workspace-avatar{background:#e9efff;color:#3468e8;font-size:14px;width:30px;height:32px}
+.sidebar .workspace-picker strong{font-size:12px;color:#465773}
+.sidebar .workspace-picker div>span{font-size:10px;color:#8391a6;margin-top:4px}
+.sidebar .workspace-picker>.icon{color:#8093b1;width:12px}
+.sidebar .nav-section-label{color:#7d8ba0;letter-spacing:2px;font-size:10px;margin-bottom:12px;padding:0 26px}
+.sidebar .primary-nav{padding:0 16px}
+.sidebar .nav-item{height:46px;border-radius:9px;padding:0 13px;color:#748097;font-size:13px;margin-bottom:9px;gap:12px}
+.sidebar .nav-item:hover{background:#f6f8fc;color:#3468e8}
+.sidebar .nav-item.is-active{background:#edf3ff;color:#3468e8;box-shadow:none;font-weight:650}
+.sidebar .nav-dot{background:#3468e8;height:5px;width:5px}
+.sidebar .sidebar-note{padding:38px 0 0;margin:auto 18px 30px;line-height:1.6}
+.sidebar .journey-pass{padding:18px 16px 17px;border:1px solid #e1e7f1;border-radius:12px;background:#f8faff;color:#465773;position:relative}
+.sidebar .pass-notch{position:absolute;top:32px;width:10px;height:10px;border-radius:50%;background:#fff;border:1px solid #e1e7f1}
+.sidebar .pass-notch-left{left:-6px}.sidebar .pass-notch-right{right:-6px}
+.sidebar .pass-eyebrow{font-size:10px;color:#8492a8;letter-spacing:1.2px}
+.sidebar .pass-route{display:block;width:100%;height:57px;margin-top:7px}
+.sidebar .journey-pass>strong{display:block;font-size:22px;line-height:1.7;font-weight:500;letter-spacing:2px;margin-top:5px;color:#526b94}
+.sidebar .pass-bottom{display:block;font-size:10px;color:#8492a8;margin-top:18px;padding-top:12px;border-top:1px dashed #dce5f3;white-space:nowrap}
+.sidebar .sidebar-bottom{padding:20px 22px;border-color:#e5e9f0;gap:10px}
+.sidebar .user-avatar{background:#e9efff;color:#5278b9;width:32px;height:32px;border:0}
+.sidebar .sidebar-bottom strong{color:#465773;font-size:12px}
+.sidebar .sidebar-bottom div span{color:#8492a8;font-size:10px}
+.sidebar .online-indicator{background:#a5cdb6;box-shadow:none}
+.app-shell{margin-left:208px;min-height:100vh;background:#f8f9fc}
+.app-shell .topbar{height:60px;background:#fff;border-color:#e5e9f0;padding:0 30px}
+.app-shell .breadcrumb{color:#8790a0;font-size:11px;gap:10px}
+.app-shell .breadcrumb strong{color:#56647b;font-weight:500}
+.app-shell .topbar-right,.app-shell .today-label{color:#7d8796;font-size:10px}
+.app-shell .topbar-divider{background:#e5e9f0}
+.app-shell .main-content{padding:28px 28px 0;max-width:1700px}
+.app-shell .page-heading{position:relative;min-height:112px;margin-bottom:23px;gap:24px;align-items:center}
+.app-shell .heading-copy{flex-shrink:0}
+.app-shell .theme-eyebrow{display:flex;align-items:center;gap:7px;color:#6b788c;font-size:10px;font-weight:600;letter-spacing:1.9px;margin-bottom:12px}
+.app-shell .theme-eyebrow>span{width:7px;height:7px;border-radius:50%;background:#3468e8;box-shadow:0 0 0 3px #edf3ff}
+.app-shell .heading-title-row{gap:14px;align-items:center}
+.app-shell .heading-title-row h1{font-size:31px;font-weight:700;letter-spacing:.6px;line-height:1.35;color:#172a46}
+.app-shell .board-label{font-size:10px;letter-spacing:.5px;color:#4c70b4;padding:3px 8px;border:1px solid #dce7fc;background:#edf3ff;border-radius:4px;transform:rotate(-4deg)}
+.app-shell .page-heading p{font-size:12px;color:#7b8595;margin-top:11px;letter-spacing:.4px}
+.app-shell .theme-route-art{width:260px;height:100px;margin-left:auto;pointer-events:none;opacity:.95}
+.app-shell .theme-route-art svg{display:block;width:100%;height:100%}
+.app-shell .button.primary{background:#3468e8;border:1px solid #3468e8;box-shadow:0 4px 9px #3468e81a;color:#fff;border-radius:7px}
+.app-shell .button.primary:hover{background:#2859d1;border-color:#2859d1}
+.app-shell #new-record{height:43px;flex-shrink:0;font-size:12px;padding:0 17px;gap:8px}
+.app-shell #new-record .icon{height:16px;width:16px}
+.app-shell .date-summary{height:76px;padding:0 20px;margin-bottom:25px;background:#ffffff;border:1px solid #e5e9f0;border-radius:11px;box-shadow:0 3px 0 #eef1f7;gap:0;overflow:hidden}
+.app-shell .summary-intro{padding-right:23px;gap:9px;align-self:stretch;border-right:1px dashed #e1e7f1;margin-right:9px}
+.app-shell .summary-intro .icon{width:20px;height:20px;color:#6685b9}
+.app-shell .summary-intro strong{color:#64748b;font-size:12px}
+.app-shell .summary-item{height:46px;border-left:0;padding:0 20px;gap:9px;border-radius:7px}
+.app-shell .summary-item:hover{background:#f3f6fc}
+.app-shell .summary-label{font-size:11px;color:#798292}
+.app-shell .summary-item strong{font-size:29px;color:#203657;font-weight:650;letter-spacing:-1px}
+.app-shell .summary-unit{font-size:10px;color:#9299a3}
+.app-shell .summary-arrow{color:#8998b4}
+.app-shell .overdue-summary strong{color:#b46145}
+.app-shell .overdue-summary .summary-label,.app-shell .overdue-summary .summary-label .icon{color:#a5715b}
+.app-shell .summary-hint{display:flex;align-items:center;gap:9px;color:#8491a6;font-size:10px;letter-spacing:.5px;margin-left:auto;padding-left:15px}
+.app-shell .summary-hint .icon{width:16px;height:16px}
+.app-shell .board-toolbar{margin-bottom:20px}
+.app-shell .view-tabs{height:39px;border-color:#e5e9f0;gap:17px;margin-bottom:15px}
+.app-shell .view-tab{font-size:12px;color:#56647c}
+.app-shell .view-tab.active,.app-shell .view-tab.is-active{color:#3468e8;border-bottom-color:#3468e8}
+.app-shell .record-total{font-size:11px;color:#87919c}
+.app-shell .search-control,.app-shell .select-control{height:36px;background:#ffffff;border-color:#e1e6ef;border-radius:6px}
+.app-shell .search-control{width:235px}
+.app-shell .search-control input,.app-shell .select-control select{color:#5e6b7f;font-size:11px;background:transparent}
+.app-shell .search-control input::placeholder{color:#8b939f}
+.app-shell .search-shortcut{background:#f6f8fc;border-color:#e5e9f0;color:#9a9fa7}
+.app-shell .select-control select{min-width:100px;padding-left:11px;padding-right:25px}
+.app-shell .sort-control select{min-width:134px;padding-left:28px}
+.app-shell .sort-control{background:transparent;border-color:transparent}
+.app-shell .archive-toggle{font-size:10px;color:#7e8896}
+.app-shell .toolbar-divider{background:#e1e6ef}
+.app-shell .columns{gap:14px;align-items:stretch}
+.app-shell .kanban-column{--station-color:#4268b1;--station-soft:#e6ecf7;background:#f0f3f8;border:1px solid #e5e9f0;border-top:3px solid var(--station-color);border-radius:10px;padding:0 9px 12px;min-height:530px}
+.app-shell .kanban-column[data-stage="assessment"]{--station-color:#ad843d;--station-soft:#f1e7d1}
+.app-shell .kanban-column[data-stage="interview"]{--station-color:#8865b0;--station-soft:#eae2f3}
+.app-shell .kanban-column[data-stage="result"]{--station-color:#508d74;--station-soft:#dfede5}
+.app-shell .column-header{height:56px;gap:9px;padding:0 4px}
+.app-shell .station-number{display:grid;place-items:center;height:23px;width:25px;flex-shrink:0;background:var(--station-soft);color:var(--station-color);font-size:10px;font-weight:700;letter-spacing:.4px;border-radius:5px}
+
+.app-shell .column-title{gap:7px}
+.app-shell .column-header h2{font-size:14px;color:#3f4d63;font-weight:600;letter-spacing:.8px}
+.app-shell .column-header .stage-dot{display:none}
+.app-shell .column-count{background:transparent;color:#9097a1;font-size:11px;min-width:13px;padding:0;margin-left:1px}
+.app-shell .column-add{color:#8d96a3;margin-left:auto}
+.app-shell .column-cards{gap:11px}
+.app-shell .job-card{background:#ffffff;border:1px solid #e1e6ef;border-radius:8px;padding:15px 13px 13px;box-shadow:0 2px 0 #c9d3e233;position:relative;overflow:hidden}
+.app-shell .job-card:hover{border-color:#a9b8d2;box-shadow:0 4px 13px #172a4610;transform:translateY(-2px)}
+.app-shell .job-card.is-selected{border-color:var(--station-color);box-shadow:0 0 0 2px var(--station-soft)}
+.app-shell .job-card .company-avatar{height:28px;width:28px;border-radius:7px;font-size:12px}
+.app-shell .job-card .company-name{font-size:12px;color:#4b5870;font-weight:600}
+.app-shell .job-card .company-row{gap:8px}
+.app-shell .job-card .card-more{color:#a4aab3}
+.app-shell .job-card .job-title{color:#25344c;font-size:14px;font-weight:600;line-height:1.55;margin-top:12px;margin-bottom:7px}
+.app-shell .job-card .card-meta{font-size:10px;color:#87919f;gap:4px}
+.app-shell .job-card .card-meta .meta-divider{margin:0 2px;color:#ccd0d5}
+.app-shell .job-card .card-status-row{margin-top:12px;gap:8px}
+.app-shell .job-card .status-badge{font-size:10px;border-radius:4px;padding:3px 6px}
+.app-shell .job-card .round-label{font-size:10px;color:#89909d}
+.app-shell .job-card .next-action{border-top:1px dashed #dce3ed;padding-top:12px;margin-top:13px;gap:5px;position:relative}
+.app-shell .job-card .ticket-notch{width:9px;height:9px;position:absolute;top:-5px;background:#f0f3f8;border:1px solid #e1e6ef;border-radius:50%;pointer-events:none}
+.app-shell .job-card .ticket-notch-left{left:-19px}.app-shell .job-card .ticket-notch-right{right:-19px}
+.app-shell .job-card .action-title{font-size:12px;color:#667287;gap:5px;line-height:1.6}
+.app-shell .job-card .action-title.is-muted{font-size:11px;min-height:26px;color:#8a94a0}
+.app-shell .job-card .action-time{font-size:11px;color:#7d8a9e;line-height:1.65}
+.app-shell .job-card .next-action.is-overdue .action-time{color:#b35c3e}
+.app-shell .job-card .next-action.is-stale .action-time{color:#967139}
+.app-shell .column-add-row{font-size:11px;color:#949a9f;height:34px;margin-top:3px}
+.app-shell .column-add-row:hover{background:#e7edf7;color:#677489}
+.app-shell .kanban-column.drop-target{background:#e6edf9;box-shadow:inset 0 0 0 2px #8ba7da}
+.app-shell .board-footer{color:#92989f;font-size:10px;padding-top:17px;padding-bottom:18px}
+.app-shell .board-empty-message h2,.app-shell .board-empty-message p{background:#f0f3f8}
+.app-shell .board-empty-message h2{color:#485872;font-size:20px}
+.app-shell .board-empty-message p{color:#85909e;font-size:13px}
+.app-shell .board-empty-message .empty-icon{background:#f6f9ff;border-color:#dce6f7;color:#6a89be}
+.app-shell .filter-chip{background:#e8edf7;color:#55709a}
+.app-shell #archived-banner{background:#eaeef3;border-color:#d8e0e8;color:#64738a}
+@media(max-width:1280px){.sidebar{width:184px}.app-shell{margin-left:184px}.sidebar .brand{padding:0 16px;gap:8px;font-size:15px}.sidebar .brand-mark{width:23px;gap:3px}.sidebar .brand-wordmark small{font-size:9px;letter-spacing:1px}.sidebar .workspace-picker{margin-left:12px;margin-right:12px;padding:12px 8px;gap:6px}.sidebar .workspace-picker strong{font-size:11px}.sidebar .journey-pass{padding-left:12px;padding-right:12px}.sidebar .pass-bottom{font-size:9px;letter-spacing:-.3px}.app-shell .main-content{padding-left:22px;padding-right:22px}.app-shell .theme-route-art{width:180px}.app-shell .summary-item{padding:0 16px}.app-shell .summary-hint{display:none}.app-shell .search-control{width:188px}.app-shell .filter-row{gap:6px}.app-shell .select-control select{min-width:85px;padding-left:8px;padding-right:21px}.app-shell .sort-control select{min-width:125px;padding-left:24px}.app-shell .job-card{padding-left:10px;padding-right:10px}.app-shell .columns{gap:10px}.app-shell .kanban-column{padding-left:7px;padding-right:7px}.app-shell .job-card .ticket-notch-left{left:-16px}.app-shell .job-card .ticket-notch-right{right:-16px}}

@@ -1,0 +1,114 @@
+{
+  "checkedAt": "2026-09-08T05:43:01.510Z",
+  "url": "http://127.0.0.1:8765",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "checks": [
+    {
+      "name": "JOB-018: direct interview completion starts awaiting feedback",
+      "passed": true,
+      "detail": {
+        "status": "待反馈",
+        "round": "第 2 轮",
+        "history": {
+          "title": "行动已完成 · 转为待反馈",
+          "text": "参加产品业务面；原预约时间：2026-09-07 15:00",
+          "date": "2026-09-08T02:00:00.000Z",
+          "stage": "interview",
+          "previousStatus": "待完成",
+          "status": "待反馈",
+          "outcome": "completed",
+          "action": {
+            "text": "参加产品业务面",
+            "date": "2026-09-07T15:00:00+08:00",
+            "dateType": "appointment",
+            "round": "第 2 轮"
+          }
+        }
+      }
+    },
+    {
+      "name": "JOB-011: direct assessment completion starts awaiting feedback",
+      "passed": true,
+      "detail": {
+        "status": "待反馈",
+        "round": "第 1 轮",
+        "history": {
+          "title": "行动已完成 · 转为待反馈",
+          "text": "完成在线测评；原截止时间：2026-09-07",
+          "date": "2026-09-08T02:00:00.000Z",
+          "stage": "assessment",
+          "previousStatus": "待完成",
+          "status": "待反馈",
+          "outcome": "completed",
+          "action": {
+            "text": "完成在线测评",
+            "date": "2026-09-07",
+            "dateType": "deadline",
+            "round": "第 1 轮"
+          }
+        }
+      }
+    },
+    {
+      "name": "JOB-018: independent cancellation preserves all progress and result fields",
+      "passed": true
+    },
+    {
+      "name": "JOB-026: independent cancellation preserves all progress and result fields",
+      "passed": true
+    },
+    {
+      "name": "Progress preloads the action, time, and round without the old treatment radios",
+      "passed": true
+    },
+    {
+      "name": "Progress feedback selection previews completion; cancel preserves data",
+      "passed": true
+    },
+    {
+      "name": "Progress feedback selection previews completion; Escape preserves data",
+      "passed": true
+    },
+    {
+      "name": "Same-stage feedback save completes the action with its original details",
+      "passed": true
+    },
+    {
+      "name": "Cross-stage feedback save completes the action with its original details",
+      "passed": true
+    },
+    {
+      "name": "Ordinary same-status progress preserves the action, appointment, round, and status clock",
+      "passed": true
+    },
+    {
+      "name": "Switching back from feedback restores editable original action controls",
+      "passed": true
+    },
+    {
+      "name": "An existing feedback follow-up survives save without restarting the waiting clock",
+      "passed": true
+    },
+    {
+      "name": "Completing an existing feedback follow-up preserves its waiting origin",
+      "passed": true
+    },
+    {
+      "name": "Completing an application action does not submit the application",
+      "passed": true
+    },
+    {
+      "name": "Completing an Offer action does not accept or decline the Offer",
+      "passed": true
+    },
+    {
+      "name": "First transition to feedback with no action does not invent completion",
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "passed": true
+}

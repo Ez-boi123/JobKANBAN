@@ -1,0 +1,62 @@
+{
+  "fileKey": "S70D3kXxBQidu19Eqolgxo",
+  "fileUrl": "https://www.figma.com/design/S70D3kXxBQidu19Eqolgxo",
+  "fileName": "JobKANBAN · 求职进度看板",
+  "teamName": "Yisa Yan's team",
+  "planKey": "team::1417025952441715117",
+  "pages": [
+    {
+      "id": "0:1",
+      "name": "Page 1",
+      "childCount": 0
+    }
+  ],
+  "status": "blocked_by_starter_mcp_tool_call_limit",
+  "lastVerifiedCanvas": "empty",
+  "nativeDesignCreated": false,
+  "fontAvailabilityVerified": [
+    "Noto Sans SC Regular",
+    "Noto Sans SC Medium",
+    "Noto Sans SC Bold"
+  ],
+  "notes": [
+    "The file was created successfully in the user-confirmed team.",
+    "Library discovery found Simple Design System and Material 3 among subscribed community libraries.",
+    "Remote components were inspected without placing canvas instances; last successful canvas read returned an empty page.",
+    "Both search_design_system and use_figma subsequently returned the Starter MCP tool call limit error.",
+    "Local preview and SVG deliverables are supplementary artifacts; they are not native Figma components or verified Figma auto layout."
+  ],
+  "supplementaryLocalArtifacts": {
+    "preview": "design/index.html",
+    "screenCount": 13,
+    "pngCount": 13,
+    "svgCount": 13,
+    "browserChecksPassed": 9,
+    "nativeFigmaStillPending": true,
+    "detailPresentation": "centered_modal",
+    "centeredDetailChecksPassed": 10,
+    "detailThemes": [
+      "application-blue",
+      "assessment-amber",
+      "interview-purple",
+      "offer-green",
+      "rejected-rose",
+      "withdrawn-slate"
+    ],
+    "detailThemeChecksPassed": 12,
+    "actionCompletionChecksPassed": 16,
+    "actionFlow": "completion_merged_with_awaiting_feedback_and_separate_cancel",
+    "completionDialogRemoved": true,
+    "productTheme": "Next Stop / 下一站",
+    "themeStylesheet": "design/theme-next-stop.css",
+    "protectedDetailAndFormComparisonsPassed": 6,
+    "shellThemeChecksPassed": 8,
+    "productPalette": {
+      "primary": "#3468e8",
+      "background": "#f8f9fc",
+      "selected": "#edf3ff",
+      "navigation": "#ffffff",
+      "source": "user screenshot"
+    }
+  }
+}

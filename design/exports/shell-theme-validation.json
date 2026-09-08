@@ -1,0 +1,46 @@
+{
+  "checks": [
+    {
+      "name": "detail unchanged",
+      "pass": true,
+      "pixelsIdentical": true
+    },
+    {
+      "name": "offer unchanged",
+      "pass": true,
+      "pixelsIdentical": true
+    },
+    {
+      "name": "archive unchanged",
+      "pass": true,
+      "pixelsIdentical": true
+    },
+    {
+      "name": "edit unchanged",
+      "pass": true,
+      "pixelsIdentical": true
+    },
+    {
+      "name": "new unchanged",
+      "pass": true,
+      "pixelsIdentical": true
+    },
+    {
+      "name": "feedback-progress unchanged",
+      "pass": true,
+      "pixelsIdentical": true
+    },
+    {
+      "name": "1440 board fits",
+      "pass": true,
+      "overflow": []
+    },
+    {
+      "name": "1200 board fits",
+      "pass": true,
+      "overflow": []
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

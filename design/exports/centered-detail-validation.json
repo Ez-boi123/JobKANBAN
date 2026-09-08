@@ -1,0 +1,63 @@
+{
+  "checks": [
+    {
+      "name": "click card opens centered detail",
+      "pass": true
+    },
+    {
+      "name": "detail centered",
+      "pass": true,
+      "box": {
+        "x": 330,
+        "y": 40,
+        "width": 780,
+        "height": 920
+      }
+    },
+    {
+      "name": "detail internal scroll with background locked",
+      "pass": true
+    },
+    {
+      "name": "offer centered",
+      "pass": true,
+      "box": {
+        "x": 330,
+        "y": 40,
+        "width": 780,
+        "height": 920
+      }
+    },
+    {
+      "name": "offer internal scroll with background locked",
+      "pass": true
+    },
+    {
+      "name": "archive centered",
+      "pass": true,
+      "box": {
+        "x": 330,
+        "y": 40,
+        "width": 780,
+        "height": 920
+      }
+    },
+    {
+      "name": "archive internal scroll with background locked",
+      "pass": true
+    },
+    {
+      "name": "backdrop closes detail",
+      "pass": true
+    },
+    {
+      "name": "Escape closes top form and preserves detail",
+      "pass": true
+    },
+    {
+      "name": "Escape closes detail",
+      "pass": true
+    }
+  ],
+  "passed": true
+}

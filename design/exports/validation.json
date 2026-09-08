@@ -1,0 +1,128 @@
+{
+  "errors": [],
+  "frames": [
+    {
+      "screen": "board",
+      "name": "01-board",
+      "overflow": []
+    },
+    {
+      "screen": "detail",
+      "name": "02-detail",
+      "overflow": []
+    },
+    {
+      "screen": "new",
+      "name": "03-new",
+      "overflow": []
+    },
+    {
+      "screen": "edit",
+      "name": "04-edit",
+      "overflow": []
+    },
+    {
+      "screen": "progress",
+      "name": "05-progress",
+      "overflow": []
+    },
+    {
+      "screen": "offer",
+      "name": "06-offer",
+      "overflow": []
+    },
+    {
+      "screen": "archive",
+      "name": "07-archive",
+      "overflow": []
+    },
+    {
+      "screen": "empty",
+      "name": "08-empty",
+      "overflow": []
+    },
+    {
+      "screen": "no-results",
+      "name": "09-no-results",
+      "overflow": []
+    },
+    {
+      "screen": "error",
+      "name": "10-form-error",
+      "overflow": []
+    },
+    {
+      "screen": "result-error",
+      "name": "11-result-error",
+      "overflow": []
+    },
+    {
+      "screen": "feedback-progress",
+      "name": "12-feedback-progress",
+      "overflow": []
+    },
+    {
+      "screen": "action-completed",
+      "name": "13-action-completed",
+      "overflow": []
+    }
+  ],
+  "checks": [
+    {
+      "name": "four-stage counts",
+      "actual": [
+        "10",
+        "7",
+        "8",
+        "5"
+      ],
+      "expected": [
+        "10",
+        "7",
+        "8",
+        "5"
+      ]
+    },
+    {
+      "name": "search",
+      "actual": 1,
+      "expected": 1
+    },
+    {
+      "name": "required fields",
+      "actual": 2,
+      "expected": 2
+    },
+    {
+      "name": "create record",
+      "actual": 31,
+      "expected": 31
+    },
+    {
+      "name": "preserve appointment time",
+      "actual": "2026-09-07T15:00:00+08:00",
+      "expected": "2026-09-07T15:00:00+08:00"
+    },
+    {
+      "name": "result required",
+      "actual": "请选择求职结果",
+      "expected": "请选择求职结果"
+    },
+    {
+      "name": "result saved",
+      "actual": "offer",
+      "expected": "offer"
+    },
+    {
+      "name": "offer decision",
+      "actual": "已接受",
+      "expected": "已接受"
+    },
+    {
+      "name": "restore archive",
+      "actual": 2,
+      "expected": 2
+    }
+  ],
+  "passed": true
+}

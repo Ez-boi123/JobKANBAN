@@ -1,0 +1,59 @@
+{
+  "checks": [
+    {
+      "name": "application theme and key text fit",
+      "pass": true,
+      "color": "rgb(36, 93, 204)"
+    },
+    {
+      "name": "assessment theme and key text fit",
+      "pass": true,
+      "color": "rgb(166, 91, 8)"
+    },
+    {
+      "name": "interview theme and key text fit",
+      "pass": true,
+      "color": "rgb(117, 66, 197)"
+    },
+    {
+      "name": "offer theme and key text fit",
+      "pass": true,
+      "color": "rgb(21, 118, 83)"
+    },
+    {
+      "name": "rejected theme and key text fit",
+      "pass": true,
+      "color": "rgb(165, 68, 101)"
+    },
+    {
+      "name": "withdrawn theme and key text fit",
+      "pass": true,
+      "color": "rgb(82, 97, 116)"
+    },
+    {
+      "name": "six distinct theme header colors",
+      "pass": true
+    },
+    {
+      "name": "application waiting feedback remains visible",
+      "pass": true
+    },
+    {
+      "name": "assessment waiting feedback remains visible",
+      "pass": true
+    },
+    {
+      "name": "interview waiting feedback remains visible",
+      "pass": true
+    },
+    {
+      "name": "overdue warning remains separate from assessment theme",
+      "pass": true
+    },
+    {
+      "name": "archived Offer retains outcome theme without pending deadline",
+      "pass": true
+    }
+  ],
+  "passed": true
+}

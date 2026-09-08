@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f9fc">
+  <title>JobKANBAN · 求职进度</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="theme-next-stop.css">
+</head>
+<body>
+  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.2 4.2"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.4"/><rect x="10" y="4" width="5" height="11" rx="1.4"/><rect x="17" y="4" width="4" height="14" rx="1.4"/></symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24"><path d="M5 9v11h14V9M9 13h6"/><rect x="3" y="4" width="18" height="5" rx="1.5"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 5h3m3 0h3"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="m10.2 4.9-7.8 13.4A1.8 1.8 0 0 0 4 21h16a1.8 1.8 0 0 0 1.6-2.7L13.8 4.9a2.1 2.1 0 0 0-3.6 0Z"/><path d="M12 9v5m0 3v.1"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z"/><circle cx="12" cy="10" r="2.4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 4 5 5M4 20l5-1L21 7a2.2 2.2 0 0 0-4-4L5 15l-1 5Z"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="m10 14 4-4m-5-1 3-3a4.2 4.2 0 0 1 6 6l-3 3m0 0-3 3a4.2 4.2 0 0 1-6-6l3-3"/></symbol>
+    <symbol id="i-sort" viewBox="0 0 24 24"><path d="M8 4v16m-4-4 4 4 4-4M16 20V4m-4 4 4-4 4 4"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h4"/></symbol>
+  </defs></svg>
+
+  <aside class="sidebar" aria-label="主导航">
+    <a class="brand" href="#board" data-nav="board" aria-label="JobKANBAN 首页">
+      <span class="brand-mark"><span></span><span></span><span></span></span>
+      <span class="brand-wordmark"><span>Job<span class="brand-light">KANBAN</span></span><small>下一站 · 新的可能</small></span>
+    </a>
+    <div class="workspace-picker"><span class="workspace-avatar">Y</span><div><strong>我的求职空间</strong><span>个人空间</span></div><svg class="icon"><use href="#i-chevron"/></svg></div>
+    <div class="nav-section-label">工作空间</div>
+    <nav class="primary-nav">
+      <a href="#board" data-nav="board" class="nav-item is-active"><svg class="icon"><use href="#i-grid"/></svg><span>求职看板</span><span class="nav-dot"></span></a>
+      <a href="#archived" data-nav="archive" class="nav-item"><svg class="icon"><use href="#i-archive"/></svg><span>已归档</span></a>
+    </nav>
+    <div class="sidebar-note"><div class="journey-pass"><span class="pass-notch pass-notch-left" aria-hidden="true"></span><span class="pass-notch pass-notch-right" aria-hidden="true"></span><span class="pass-eyebrow">写给下一站的你</span><svg class="pass-route" viewBox="0 0 142 56" aria-hidden="true"><path d="M6 40H43C65 40 60 14 83 14H126" fill="none" stroke="#b1c3e2" stroke-width="1.5" stroke-dasharray="4 5"/><circle cx="6" cy="40" r="4" fill="#3468e8"/><circle cx="83" cy="14" r="4" fill="#8aa8e8"/><path d="m124 7 12 7-12 7 3-7Z" fill="#3468e8"/></svg><strong>每一步，<br>都在靠近。</strong><span class="pass-bottom">保持节奏，好机会在前方。</span></div></div>
+    <div class="sidebar-bottom"><span class="user-avatar">Y</span><div><strong>Yisa</strong><span>个人求职看板</span></div><span class="online-indicator" title="个人空间"></span></div>
+  </aside>
+
+  <div class="app-shell">
+    <header class="topbar"><div class="breadcrumb"><span>我的空间</span><span class="breadcrumb-separator">/</span><strong>求职看板</strong></div><div class="topbar-right"><span class="local-mode"><span></span>个人空间</span><span class="topbar-divider"></span><span class="today-label">2026年9月8日，星期二</span></div></header>
+    <main class="main-content">
+      <section class="page-heading"><div class="heading-copy"><span class="theme-eyebrow"><span></span>NEXT STOP · 下一站</span><div class="heading-title-row"><h1 id="board-title">求职进度</h1><span class="board-label">我的看板</span></div><p>让每一个机会，都有清晰的下一步。</p></div>
+        <div class="theme-route-art" aria-hidden="true"><svg viewBox="0 0 290 104"><path d="M15 74H78C110 74 102 30 137 30H262" fill="none" stroke="#b8c1d0" stroke-width="1.5" stroke-dasharray="3 5"/><path d="M15 74H78C94 74 98 62 102 50" fill="none" stroke="#3468e8" stroke-width="3" stroke-linecap="round"/><circle cx="15" cy="74" r="5" fill="#3468e8"/><circle cx="105" cy="45" r="8" fill="#f8f9fc" stroke="#dca653" stroke-width="3"/><circle cx="164" cy="30" r="5" fill="#9270c5"/><circle cx="237" cy="30" r="5" fill="#418a6d"/><path d="m260 22 15 8-15 8 4-8Z" fill="#243752"/><text x="4" y="98" fill="#7c889b" font-size="10" font-family="Arial">START</text><text x="207" y="62" fill="#63708a" font-size="10" font-family="Arial" letter-spacing="1.6">NEXT STOP</text><path d="M195 8v8m-4-4h8" stroke="#dca653" stroke-width="1.5"/></svg></div>
+        <button id="new-record" class="button primary"><svg class="icon"><use href="#i-plus"/></svg>新建求职记录</button>
+      </section>
+
+      <section id="date-summary" class="date-summary" aria-label="行动提醒">
+        <div class="summary-intro"><svg class="icon"><use href="#i-calendar"/></svg><strong>行程概览</strong></div>
+        <button class="summary-item" data-date-filter="today"><span class="summary-label">今天</span><strong id="count-today" data-count="today">3</strong><span class="summary-unit">项行动</span><svg class="icon summary-arrow"><use href="#i-arrow"/></svg></button>
+        <button class="summary-item" data-date-filter="week"><span class="summary-label">本周</span><strong id="count-week" data-count="week">8</strong><span class="summary-unit">项行动</span><svg class="icon summary-arrow"><use href="#i-arrow"/></svg></button>
+        <button class="summary-item overdue-summary" data-date-filter="overdue"><span class="summary-label"><svg class="icon"><use href="#i-alert"/></svg>逾期</span><strong id="count-overdue" data-count="overdue">2</strong><span class="summary-unit">项截止事项</span><svg class="icon summary-arrow"><use href="#i-arrow"/></svg></button>
+        <span class="summary-hint">一步一步，走向下一站 <svg class="icon"><use href="#i-arrow"/></svg></span>
+      </section>
+
+      <section class="board-toolbar" aria-label="看板工具">
+        <div class="view-tabs"><button class="view-tab active" data-nav="board"><svg class="icon"><use href="#i-grid"/></svg>看板视图</button><span class="record-total" id="board-count">30 条进行中及结果记录</span></div>
+        <div class="filter-row">
+          <label class="search-control" for="search-input"><svg class="icon"><use href="#i-search"/></svg><input id="search-input" type="search" placeholder="搜索公司或岗位" autocomplete="off"><span class="search-shortcut">/</span></label>
+          <label class="select-control"><select id="filter-city" aria-label="按城市筛选"><option value="">全部城市</option><option value="上海">上海</option><option value="北京">北京</option><option value="杭州">杭州</option><option value="深圳">深圳</option><option value="远程">远程</option></select><svg class="icon"><use href="#i-chevron"/></svg></label>
+          <label class="select-control"><select id="filter-status" aria-label="按状态筛选"><option value="">全部状态</option><option>待投递</option><option>已投递</option><option>待安排</option><option>待完成</option><option>待反馈</option><option>收到 Offer</option><option>未通过</option><option>主动退出</option></select><svg class="icon"><use href="#i-chevron"/></svg></label>
+          <label class="select-control"><select id="filter-date" aria-label="按行动日期筛选"><option value="">行动日期</option><option value="today">今天</option><option value="week">本周</option><option value="overdue">逾期截止</option><option value="undated">无日期</option></select><svg class="icon"><use href="#i-chevron"/></svg></label>
+          <div class="toolbar-spacer"></div>
+          <label class="archive-toggle"><input id="archive-toggle" type="checkbox"><span class="toggle-track"></span><span>已归档</span></label>
+          <span class="toolbar-divider"></span>
+          <label class="select-control sort-control"><svg class="icon sort-icon"><use href="#i-sort"/></svg><select id="sort-order" aria-label="列内排序"><option value="action">下次行动时间</option><option value="updated">最近更新</option></select><svg class="icon"><use href="#i-chevron"/></svg></label>
+        </div>
+        <div id="active-filters" class="active-filters" hidden></div>
+      </section>
+
+      <div id="archived-banner" class="archived-banner" hidden></div>
+      <section id="columns" class="columns" aria-label="求职阶段看板"></section>
+      <footer class="board-footer"><span><span class="subtle-dot"></span>拖动卡片切换阶段，确认后更新进展</span><span>虚构数据 · 设计预览</span></footer>
+    </main>
+  </div>
+
+  <aside id="detail-panel" class="detail-panel" role="dialog" aria-modal="true" aria-label="岗位详情" hidden></aside>
+  <div id="modal-layer" class="modal-layer" hidden></div>
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <details class="preview-tools"><summary><span class="preview-tool-dot"></span>设计画面 <svg class="icon"><use href="#i-chevron"/></svg></summary><div class="preview-menu"><span class="preview-menu-title">可检查的设计状态</span><button data-preview="board">01 <span>主看板</span></button><button data-preview="detail">02 <span>岗位详情</span></button><button data-preview="new">03 <span>新建记录</span></button><button data-preview="edit">04 <span>编辑记录</span></button><button data-preview="progress">05 <span>更新进展</span></button><button data-preview="offer">06 <span>Offer 处理</span></button><button data-preview="archive">07 <span>归档与恢复</span></button><button data-preview="empty">08 <span>空看板</span></button><button data-preview="no-results">09 <span>搜索无结果</span></button><button data-preview="error">10 <span>表单错误</span></button><button data-preview="result-error">11 <span>结果必填提示</span></button><button data-preview="feedback-progress">12 <span>更新为待反馈</span></button><button data-preview="action-completed">13 <span>完成后待反馈</span></button><p>本地预览 · 尚非 Figma 原生文件</p></div></details>
+  <script src="sample-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
