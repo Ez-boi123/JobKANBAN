@@ -1,0 +1,7 @@
+import {useEffect,useRef,ReactNode} from 'react';
+export function Dialog({children,onClose,label,className}:{children:ReactNode;onClose:()=>void;label:string;className:string}) {
+ const ref=useRef<HTMLDivElement>(null),close=useRef(onClose); close.current=onClose;
+ useEffect(()=>{const old=document.activeElement as HTMLElement;const panel=ref.current!;const previous=document.body.style.overflow;document.body.style.overflow='hidden';panel.focus();
+ const key=(e:KeyboardEvent)=>{const layers=[...document.querySelectorAll('[data-dialog]')];if(layers.at(-1)!==panel)return;if(e.key==='Escape'){e.stopPropagation();close.current();}if(e.key==='Tab'){const controls=[...panel.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]')].filter(el=>el.getClientRects().length);const first=controls[0],last=controls.at(-1);if(!first){e.preventDefault();return;}if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel)){e.preventDefault();last?.focus();}else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===panel)){e.preventDefault();first.focus();}}};document.addEventListener('keydown',key);return()=>{document.removeEventListener('keydown',key);document.body.style.overflow=previous;if(old?.isConnected)old.focus();};},[]);
+ return <div ref={ref} data-dialog tabIndex={-1} className={className} role="dialog" aria-modal="true" aria-label={label} onMouseDown={e=>{if(e.target===e.currentTarget)onClose();}}>{children}</div>;
+}
