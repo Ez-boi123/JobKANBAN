@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "start": "node server/index.mjs",
     "test": "node --test tests/api.test.mjs",
-    "test:browser": "node tests/browser.mjs"
+    "test:browser": "node tests/browser.mjs",
+    "test:controls": "node tests/controls.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",

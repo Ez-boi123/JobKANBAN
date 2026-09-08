@@ -1,16 +1,26 @@
 import { useId, type SelectHTMLAttributes } from "react";
 
 interface Props extends SelectHTMLAttributes<HTMLSelectElement> {
-  hint: string;
+  hint?: string;
+  compact?: boolean;
 }
 
 /** Keep native keyboard, touch and screen-reader behavior for short option lists. */
-export function FormSelect({ hint, children, ...props }: Props) {
+export function FormSelect({
+  hint,
+  compact = false,
+  children,
+  ...props
+}: Props) {
   const hintId = useId();
   return (
-    <div className="form-select">
+    <div className={`form-select${compact ? " form-select-compact" : ""}`}>
       <div className="form-select-control">
-        <select {...props} className="form-control" aria-describedby={hintId}>
+        <select
+          {...props}
+          className="form-control"
+          aria-describedby={hint ? hintId : undefined}
+        >
           {children}
         </select>
         <svg
@@ -21,9 +31,11 @@ export function FormSelect({ hint, children, ...props }: Props) {
           <path d="m6 8 4 4 4-4" />
         </svg>
       </div>
-      <span id={hintId} className="form-select-hint">
-        {hint}
-      </span>
+      {hint && (
+        <span id={hintId} className="form-select-hint">
+          {hint}
+        </span>
+      )}
     </div>
   );
 }

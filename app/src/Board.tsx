@@ -10,6 +10,7 @@ import {
   stale,
 } from "./time";
 import { Icon } from "./Icon";
+import { FormSelect } from "./FormSelect";
 interface Props {
   jobs: Job[];
   archived: boolean;
@@ -182,7 +183,8 @@ export function Board({
             />
           </label>
           <label className="select-control">
-            <select
+            <FormSelect
+              compact
               aria-label="按城市筛选"
               value={city}
               onChange={(e) => setCity(e.target.value)}
@@ -192,10 +194,11 @@ export function Board({
               {cities.map((c) => (
                 <option key={c}>{c}</option>
               ))}
-            </select>
+            </FormSelect>
           </label>
           <label className="select-control">
-            <select
+            <FormSelect
+              compact
               aria-label="按状态筛选"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
@@ -215,10 +218,11 @@ export function Board({
               ].map((s) => (
                 <option key={s}>{s}</option>
               ))}
-            </select>
+            </FormSelect>
           </label>
           <label className="select-control">
-            <select
+            <FormSelect
+              compact
               aria-label="按行动日期筛选"
               value={date}
               onChange={(e) => setDate(e.target.value)}
@@ -228,7 +232,7 @@ export function Board({
               <option value="week">本周</option>
               <option value="overdue">逾期</option>
               <option value="undated">无日期行动</option>
-            </select>
+            </FormSelect>
           </label>
           <div className="toolbar-spacer" />
           <label className="archive-toggle">
@@ -241,14 +245,15 @@ export function Board({
             <span>已归档</span>
           </label>
           <label className="select-control sort-control">
-            <select
+            <FormSelect
+              compact
               aria-label="列内排序"
               value={sort}
               onChange={(e) => setSort(e.target.value)}
             >
               <option value="date">下次行动时间</option>
               <option value="updated">最近更新</option>
-            </select>
+            </FormSelect>
           </label>
         </div>
         {hasFilter && (

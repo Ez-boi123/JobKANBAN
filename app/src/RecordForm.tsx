@@ -4,6 +4,7 @@ import { Dialog } from "./Dialog";
 import { Icon } from "./Icon";
 import { ApiError } from "./api";
 import { FormSelect } from "./FormSelect";
+import { DateTimeInput } from "./DateTimeInput";
 interface Props {
   job?: Job;
   target?: Stage;
@@ -104,6 +105,15 @@ export function RecordForm({
           value={data[name]}
           onChange={(e) => update(name, e.target.value)}
           maxLength={10000}
+        />
+      ) : type === "date" || type === "time" ? (
+        <DateTimeInput
+          type={type}
+          aria-label={label}
+          aria-required={required}
+          name={name}
+          value={data[name]}
+          onChange={(e) => update(name, e.target.value)}
         />
       ) : (
         <input

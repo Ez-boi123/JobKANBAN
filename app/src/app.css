@@ -110,6 +110,77 @@ button:disabled {
 .form-select {
   min-width: 0;
 }
+.app-shell .select-control:has(.form-select) {
+  border: 0;
+  background: transparent;
+  height: 38px;
+}
+.form-select-compact .form-select-control select.form-control {
+  height: 38px;
+  min-width: 104px;
+  padding: 0 34px 0 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.form-select-compact .form-select-chevron {
+  top: 9px;
+  right: 9px;
+}
+.sort-control .form-select-compact select.form-control {
+  min-width: 144px;
+}
+.date-time-control {
+  position: relative;
+}
+.date-time-control input.form-control {
+  height: 44px;
+  padding: 0 12px 0 38px;
+  border: 1px solid #d7e0ed;
+  border-radius: 8px;
+  background: #fff;
+  color: #344660;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.date-time-control input:hover:not(:disabled) {
+  border-color: #94afe6;
+  background: #fafcff;
+}
+.date-time-control input:focus-visible {
+  outline: none;
+  border-color: #3468e8;
+  box-shadow: 0 0 0 3px #3468e81a;
+}
+.date-time-icon {
+  position: absolute;
+  left: 12px;
+  top: 13px;
+  color: #7289ad;
+  pointer-events: none;
+}
+.date-time-control:focus-within .date-time-icon {
+  color: #3468e8;
+}
+.date-time-control input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.55;
+  padding: 6px;
+}
+.date-time-control input:disabled {
+  background: #f3f5f9;
+  color: #97a3b5;
+  cursor: not-allowed;
+}
+.has-error .date-time-control input {
+  border-color: #c96764;
+  background: #fffafa;
+}
+/* Chromium's customizable native select also themes the expanded menu.
+   Browsers without it retain the same accessible native selection behavior. */
+
 .form-select-control {
   position: relative;
 }
@@ -207,5 +278,60 @@ a:focus-visible,
   }
   .kanban-column {
     min-width: 240px;
+  }
+}
+
+@supports (appearance: base-select) {
+  .form-select-control select.form-control,
+  .form-select-control select::picker(select) {
+    appearance: base-select;
+  }
+  .form-select-control select.form-control {
+    display: flex;
+    align-items: center;
+  }
+  .form-select-control select::picker-icon {
+    display: none;
+  }
+  .form-select-control select::picker(select) {
+    border: 1px solid #d7e2f3;
+    border-radius: 10px;
+    padding: 5px;
+    margin-top: 6px;
+    background: #fff;
+    color: #344660;
+    box-shadow:
+      0 10px 32px #1d386222,
+      0 2px 5px #1d38620a;
+    max-height: 300px;
+    overflow: auto;
+  }
+  .form-select-control option {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 38px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+  .form-select-control option:hover,
+  .form-select-control option:focus {
+    background: #f0f5ff;
+    outline: none;
+  }
+  .form-select-control option:checked {
+    background: #eaf1ff;
+    color: #245dcc;
+    font-weight: 600;
+  }
+  .form-select-control option::checkmark {
+    color: #3468e8;
+  }
+  .form-select-control:has(select:open) .form-select-chevron {
+    transform: rotate(180deg);
+    stroke: #3468e8;
   }
 }
