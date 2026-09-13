@@ -1,6 +1,8 @@
-const path = require('node:path');
-const { createRequire } = require('node:module');
+const path = require("node:path");
+const { createRequire } = require("node:module");
 
-const requireFromApp = createRequire(path.join(__dirname, '../app/package.json'));
+const requireFromApp = createRequire(
+  path.join(__dirname, "../app/package.json"),
+);
 
-module.exports = requireFromApp('playwright');
+module.exports = requireFromApp("playwright");
