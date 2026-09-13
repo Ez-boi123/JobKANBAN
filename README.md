@@ -6,20 +6,13 @@ React 求职看板，Node.js 后端与 SQLite 数据库。蓝灰主界面、四�
 
 需要 Node.js 24.14 或更新的 24.x 版本。
 
-在项目目录执行一次：
+双击 `start.cmd`，或在项目目录执行：
 
 ```powershell
-npm --prefix app install
+npm --prefix app run launch
 ```
 
-随后双击 `start.cmd`，或执行：
-
-```powershell
-npm --prefix app run build
-npm --prefix app start
-```
-
-打开 [本地应用](http://127.0.0.1:3000)。保持服务窗口运行；按 Ctrl+C 停止。再次启动仍能读取此前记录。若 3000 端口已被占用，请先停止本应用的旧服务。
+启动器会检查 Node.js 版本，只在需要时同步依赖和重新构建前端，并在服务就绪后自动打开 [本地应用](http://127.0.0.1:3000)。若本应用已经运行，启动器会直接打开现有页面；若其他程序占用了 3000 端口，则会显示明确提示。保持服务窗口运行，按 Ctrl+C 停止。再次启动仍能读取此前记录。
 
 ## 使用与数据
 
@@ -45,10 +38,9 @@ npm --prefix app run test:browser
 浏览器验收使用临时数据库并自行启动测试服务，不触碰实际记录；Windows 默认调用已安装的 Edge。其他环境先执行 `cd app
 npx playwright install chromium`，并将 `PLAYWRIGHT_CHANNEL` 设为 `chromium`。
 
-`npm --prefix app run dev` 提供 React 开发服务，需另一个窗口运行 `npm --prefix app start` 启动后端。正式使用以 `start.cmd` 为入口。
+在项目根目录运行 `npm run dev:all` 会同时启动 React 开发服务和后端，并在就绪后打开开发页面。若需要分别控制两个进程，可在两个窗口中运行 `npm --prefix app start` 和 `npm --prefix app run dev`。正式使用以 `start.cmd` 为入口。
 
 前端源码在 `app/src`，后端在 `app/server`，测试在 `app/tests`。SQLite 使用 Node.js 内置接口，当前 Node 版本可能输出实验性提示；这不会中断启动。
-
 
 ## 项目目录
 

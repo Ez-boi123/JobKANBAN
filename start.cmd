@@ -6,14 +6,8 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-if not exist node_modules (
-  call npm install
-  if errorlevel 1 exit /b 1
-)
-call npm run build
+node scripts\launcher.mjs
 if errorlevel 1 (
   pause
   exit /b 1
 )
-call npm start
-pause

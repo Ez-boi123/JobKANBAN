@@ -117,6 +117,8 @@ export function createApp({
     try {
       validateLocal(req, server);
       const path = req.url.split("?")[0];
+      if (path === "/api/health" && req.method === "GET")
+        return send(200, { name: "JobKANBAN", status: "ok" });
       if (path === "/api/jobs" && req.method === "GET")
         return send(200, store.list());
       if (path === "/api/jobs" && req.method === "POST") {

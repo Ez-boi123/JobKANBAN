@@ -52,6 +52,15 @@ async function setup(t, options = {}) {
   };
 }
 
+test("health endpoint identifies a running JobKANBAN instance", async (t) => {
+  const api = await setup(t);
+
+  const result = await api.request("/api/health");
+
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.body, { name: "JobKANBAN", status: "ok" });
+});
+
 test("created record can be retrieved over HTTP with safe defaults", async (t) => {
   const api = await setup(t);
   assert.deepEqual((await api.request()).body, []);

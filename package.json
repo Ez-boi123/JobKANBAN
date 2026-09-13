@@ -1,0 +1,7 @@
+{
+  "name": "jobkanban-workspace",
+  "private": true,
+  "scripts": {
+    "dev:all": "node app/scripts/launcher.mjs --dev"
+  }
+}
