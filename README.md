@@ -194,4 +194,4 @@ JobKANBAN/
 
 ## License
 
-本项目使用 [MIT License](LICENSE)。
+Copyright © 2026 Haofeng。本项目使用 [MIT License](LICENSE)。
