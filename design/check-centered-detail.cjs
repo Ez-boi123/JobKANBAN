@@ -1,4 +1,4 @@
-const {chromium}=require('C:/Users/Yisa/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const {chromium}=require('./playwright.cjs');
 const fs=require('fs');
 (async()=>{
  const browser=await chromium.launch({headless:true});

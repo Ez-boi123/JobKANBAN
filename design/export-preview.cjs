@@ -1,4 +1,4 @@
-const { chromium } = require('C:/Users/Yisa/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+const { chromium } = require('./playwright.cjs');
 const fs = require('fs');
 const path = require('path');
 const { pathToFileURL } = require('url');

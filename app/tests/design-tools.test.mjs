@@ -25,6 +25,6 @@ test('design scripts load Playwright from the project instead of a machine-speci
   for (const scriptName of designScripts) {
     const source = fs.readFileSync(path.join(designDirectory, scriptName), 'utf8');
     assert.match(source, /require\(['"]\.\/playwright\.cjs['"]\)/);
-    assert.doesNotMatch(source, /(?:[A-Za-z]:[\\/]|\/Users\/|\/home\/)/);
+    assert.doesNotMatch(source, /(?:['"`][A-Za-z]:[\\/]|\/Users\/|\/home\/)/);
   }
 });
