@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "launch": "node scripts/launcher.mjs",
     "start": "node server/index.mjs",
-    "test": "node --test tests/api.test.mjs tests/launcher.test.mjs",
+    "test": "node --test tests/api.test.mjs tests/design-tools.test.mjs tests/launcher.test.mjs",
     "test:browser": "node tests/browser.mjs",
     "test:controls": "node tests/controls.mjs"
   },
