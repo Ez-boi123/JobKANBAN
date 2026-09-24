@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local testing only. Never commit actual secrets.
+SYNC_TOKEN=replace-with-at-least-32-random-characters
+SMTP_USER=your-account@163.com
+SMTP_AUTH_CODE=replace-with-independent-client-authorization-code
+# Restrict this single-user deployment to your receiving address.
+RECIPIENT_EMAIL=your-account@163.com

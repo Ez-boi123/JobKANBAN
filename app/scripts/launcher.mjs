@@ -158,6 +158,7 @@ export async function prepareApp(appDir, { build = true } = {}) {
       distEntryPath,
       inputPaths: [
         join(appDir, "src"),
+        join(appDir, "../shared"),
         join(appDir, "index.html"),
         join(appDir, "vite.config.ts"),
         join(appDir, "tsconfig.json"),

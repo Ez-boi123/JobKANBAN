@@ -1,0 +1,22 @@
+{
+  "name": "jobkanban-reminder-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/wrangler.mjs dev --test-scheduled",
+    "deploy": "node scripts/wrangler.mjs deploy",
+    "dry-run": "node scripts/wrangler.mjs deploy --dry-run --outdir .wrangler/build",
+    "types": "node scripts/wrangler.mjs types --env-file .dev.vars.example --strict-vars=false",
+    "precheck": "npm run types",
+    "check": "tsc --noEmit",
+    "pretest": "npm run dry-run",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "@types/node": "^24.13.6",
+    "miniflare": "5.20260921.0-alpha",
+    "typescript": "^5.9.0",
+    "wrangler": "4.136.3"
+  }
+}

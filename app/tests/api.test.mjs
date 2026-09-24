@@ -76,6 +76,43 @@ test("created record can be retrieved over HTTP with safe defaults", async (t) =
   assert.deepEqual((await api.request()).body, [result.body]);
 });
 
+test("new records can be created directly in a selected board stage", async (t) => {
+  const api = await setup(t);
+  const assessment = await api.request("/api/jobs", "POST", {
+    company: "海棠科技",
+    role: "产品经理",
+    stage: "assessment",
+    status: "待安排",
+    resultType: "",
+  });
+  assert.equal(assessment.status, 201);
+  assert.equal(assessment.body.stage, "assessment");
+  assert.equal(assessment.body.status, "待安排");
+  assert.match(assessment.body.history[0].text, /测评阶段/);
+
+  const resultWithoutOutcome = await api.request("/api/jobs", "POST", {
+    company: "海棠科技",
+    role: "数据分析师",
+    stage: "result",
+    status: "",
+    resultType: "",
+  });
+  assert.equal(resultWithoutOutcome.status, 400);
+
+  const offer = await api.request("/api/jobs", "POST", {
+    company: "海棠科技",
+    role: "管培生",
+    stage: "result",
+    status: "offer",
+    resultType: "offer",
+  });
+  assert.equal(offer.status, 201);
+  assert.equal(offer.body.stage, "result");
+  assert.equal(offer.body.status, "收到 Offer");
+  assert.equal(offer.body.resultType, "offer");
+  assert.equal(offer.body.offerDecision, "pending");
+});
+
 test("successful edits survive reopen and stale versions cannot overwrite history", async (t) => {
   const api = await setup(t);
   let job = (

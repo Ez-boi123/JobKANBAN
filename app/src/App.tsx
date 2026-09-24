@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { api, ApiError } from "./api";
-import { Job, Stage } from "./types";
+import { Job, Stage, type ReminderSettings as ReminderState } from "./types";
 import { Board } from "./Board";
 import { Detail } from "./Detail";
 import { RecordForm } from "./RecordForm";
 import { Icon } from "./Icon";
+import { ReminderSettings, reminderStatus } from "./ReminderSettings";
 interface FormState {
   mode: "record" | "progress";
   job?: Job;
@@ -21,6 +22,13 @@ export default function App() {
     [toast, setToast] = useState(""),
     [now, setNow] = useState(new Date());
   const commandLock = useRef(false);
+  const [reminders, setReminders] = useState<ReminderState | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const refreshReminders = () =>
+    api
+      .reminders()
+      .then(setReminders)
+      .catch(() => {});
   const reload = async () => {
     setError("");
     try {
@@ -34,8 +42,17 @@ export default function App() {
   };
   useEffect(() => {
     void reload().catch(() => {});
-    const timer = setInterval(() => setNow(new Date()), 30000);
-    return () => clearInterval(timer);
+    void refreshReminders();
+    const refresh = () => {
+      setNow(new Date());
+      void refreshReminders();
+    };
+    const timer = setInterval(refresh, 30000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, []);
   useEffect(() => {
     if (!toast) return;
@@ -44,6 +61,7 @@ export default function App() {
   }, [toast]);
   const job = jobs.find((j) => j.id === selected);
   function saved(j: Job) {
+    void refreshReminders();
     setJobs((rows) =>
       rows.some((row) => row.id === j.id)
         ? rows.map((row) => (row.id === j.id ? j : row))
@@ -113,6 +131,21 @@ export default function App() {
         </div>
         <div className="nav-section-label">工作空间</div>
         <nav className="primary-nav">
+          <button
+            className="nav-item reminder-nav"
+            onClick={() => {
+              void api
+                .reminders()
+                .then((s) => {
+                  setReminders(s);
+                  setSettingsOpen(true);
+                })
+                .catch((e: Error) => setError(e.message));
+            }}
+          >
+            <Icon name="clock" />
+            <span>提醒设置</span>
+          </button>
           <a
             href="#board"
             className={`nav-item ${!archived ? "is-active" : ""}`}
@@ -189,7 +222,18 @@ export default function App() {
             </span>
           </div>
         </header>
-        <main className="main-content">
+        <main
+          className="main-content"
+          data-reminder-motion={reminders?.animation === false ? "off" : "on"}
+        >
+          {reminders && (reminders.pending || reminders.error) && (
+            <button
+              className="reminder-sync-banner"
+              onClick={() => setSettingsOpen(true)}
+            >
+              {reminderStatus(reminders)} · 查看设置
+            </button>
+          )}
           {loading ? (
             <div className="loading-state" role="status">
               正在读取求职记录…
@@ -200,7 +244,7 @@ export default function App() {
               archived={archived}
               now={now}
               onOpen={(j) => setSelected(j.id)}
-              onNew={() => setForm({ mode: "record" })}
+              onNew={(target) => setForm({ mode: "record", target })}
               onArchiveView={changeView}
               onProgress={(j, stage) =>
                 setForm({ mode: "progress", job: j, target: stage })
@@ -218,6 +262,32 @@ export default function App() {
           onEdit={() => setForm({ mode: "record", job })}
           onProgress={() => setForm({ mode: "progress", job })}
           onCommand={(type, data) => void command(type, data)}
+          reminderMuted={!!reminders?.muted[job.id]}
+          onReminderToggle={
+            reminders
+              ? () => {
+                  void api
+                    .saveReminders({
+                      revision: reminders.revision,
+                      jobId: job.id,
+                      muted: !reminders.muted[job.id],
+                    })
+                    .then(setReminders)
+                    .catch((e: Error) => {
+                      setError(e.message);
+                      void refreshReminders();
+                    });
+                }
+              : undefined
+          }
+        />
+      )}
+      {settingsOpen && reminders && (
+        <ReminderSettings
+          state={reminders}
+          jobs={jobs}
+          onChange={setReminders}
+          onClose={() => setSettingsOpen(false)}
         />
       )}
       {form && (

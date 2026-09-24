@@ -2,11 +2,17 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { HttpError } from "./domain.mjs";
+import {
+  initialReminders,
+  projectReminders,
+  updateReminderSettings,
+} from "./reminders.mjs";
 
-export function openStore(dbPath) {
+export function openStore(dbPath, clock = () => new Date()) {
   if (dbPath !== ":memory:") mkdirSync(dirname(dbPath), { recursive: true });
   const db = new DatabaseSync(dbPath);
   db.exec(`PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;
+    CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, data TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, version INTEGER NOT NULL, data TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS history (id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs(id), data TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS rounds (job_id TEXT NOT NULL REFERENCES jobs(id), stage TEXT NOT NULL, round TEXT NOT NULL, data TEXT NOT NULL, PRIMARY KEY(job_id, stage, round));`);
@@ -15,6 +21,34 @@ export function openStore(dbPath) {
       .prepare("SELECT data FROM jobs ORDER BY rowid DESC")
       .all()
       .map((row) => JSON.parse(row.data));
+  }
+  db.prepare(
+    "INSERT OR IGNORE INTO settings(key,data) VALUES('reminders',?)",
+  ).run(JSON.stringify(initialReminders()));
+  const reminders = () =>
+    JSON.parse(
+      db.prepare("SELECT data FROM settings WHERE key='reminders'").get().data,
+    );
+  const writeReminders = (state) =>
+    db
+      .prepare("UPDATE settings SET data=? WHERE key='reminders'")
+      .run(JSON.stringify(state));
+  function reminderSettings(body) {
+    db.exec("BEGIN IMMEDIATE");
+    try {
+      const jobs = list();
+      const state = projectReminders(
+        updateReminderSettings(reminders(), body, jobs),
+        jobs,
+        +clock(),
+      );
+      writeReminders(state);
+      db.exec("COMMIT");
+      return state;
+    } catch (error) {
+      db.exec("ROLLBACK");
+      throw error;
+    }
   }
   function save(job, id, version, transform) {
     db.exec("BEGIN IMMEDIATE");
@@ -41,6 +75,7 @@ export function openStore(dbPath) {
         db.prepare(
           "INSERT INTO rounds(job_id,stage,round,data) VALUES(?,?,?,?) ON CONFLICT(job_id,stage,round) DO UPDATE SET data=excluded.data",
         ).run(job.id, round.stage, round.round, JSON.stringify(round));
+      writeReminders(projectReminders(reminders(), list(), +clock()));
       db.exec("COMMIT");
       return job;
     } catch (error) {
@@ -52,6 +87,10 @@ export function openStore(dbPath) {
     list,
     save,
     mutate: (id, version, transform) => save(null, id, version, transform),
+    reminders,
+    reminderSettings,
+    reminderSyncResult: (result) =>
+      writeReminders({ ...reminders(), ...result }),
     close: () => db.close(),
   };
 }

@@ -1,0 +1,371 @@
+import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
+import { mkdir, writeFile, rename } from "node:fs/promises";
+import { resolve, join } from "node:path";
+import { stripVTControlCharacters } from "node:util";
+import { HttpError, validateBody } from "./domain.mjs";
+import { validEmail } from "../../shared/reminders.mjs";
+
+// Never include child output in an HTTP error: it may contain OAuth URLs or secrets.
+export function runSetupCommand(command, args, options = {}) {
+  return new Promise((resolvePromise, reject) => {
+    const child = spawn(command, args, {
+      cwd: options.cwd,
+      env: options.env,
+      shell: false,
+      windowsHide: true,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    let output = "";
+    let combinedOutput = "";
+    const stop = () => child.kill();
+    const timer = setTimeout(stop, options.timeout || 180000);
+    const abort = () => stop();
+    options.signal?.addEventListener("abort", abort, { once: true });
+    if (options.signal?.aborted) stop();
+    const finish = (error) => {
+      clearTimeout(timer);
+      options.signal?.removeEventListener("abort", abort);
+      if (error) reject(new Error("部署工具执行失败或超时"));
+      else resolvePromise(stripVTControlCharacters(output));
+    };
+    child.on("error", () => finish(true));
+    child.on("close", (code) => finish(code !== 0 || options.signal?.aborted));
+    const receive = (chunk, stdout) => {
+      if (stdout) output += chunk.toString();
+      combinedOutput += chunk.toString();
+      if (combinedOutput.length > 2 * 1024 * 1024) return stop();
+      options.onOutput?.(stripVTControlCharacters(combinedOutput));
+    };
+    child.stdout.on("data", (chunk) => receive(chunk, true));
+    child.stderr.on("data", (chunk) => receive(chunk, false));
+    child.stdin.on("error", () => {});
+    child.stdin.end(options.input || "");
+  });
+}
+
+function parseJson(output) {
+  // --json commands disable their banner. Reject unexpected output instead of
+  // treating a partial response as authority to deploy to another account.
+  return JSON.parse(output.trim());
+}
+
+export async function writePrivateJson(file, value) {
+  const temporary = file + ".tmp";
+  await writeFile(temporary, JSON.stringify(value, null, 2) + "\n", {
+    mode: 0o600,
+  });
+  await rename(temporary, file);
+}
+
+export function createReminderSetup({
+  root,
+  dataDir,
+  store,
+  configured,
+  activate,
+  runner = runSetupCommand,
+  fetcher = fetch,
+}) {
+  const workerDir = resolve(root, "../reminder-worker");
+  const setupDir = join(dataDir, "reminder-setup");
+  const configPath = join(setupDir, "wrangler.json");
+  const planPath = join(setupDir, "deployment.json");
+  const cli = join(workerDir, "node_modules/wrangler/bin/wrangler.js");
+  let operation = null;
+  let controller;
+  let state = {
+    phase: "idle",
+    step: "",
+    error: "",
+    authUrl: "",
+    accounts: [],
+    url: "",
+  };
+  let plan;
+  if (existsSync(planPath)) {
+    try {
+      plan = JSON.parse(readFileSync(planPath, "utf8"));
+    } catch {
+      state.error =
+        "本机部署记录无法读取，请检查 data/reminder-setup 中的备份。";
+    }
+  }
+  const snapshot = () => ({
+    ...state,
+    busy: !!operation,
+    configured: configured(),
+  });
+  const update = (phase, step) => {
+    state = { ...state, phase, step, error: "" };
+  };
+  const ensureAvailable = () => {
+    if (operation) throw new HttpError(409, "已有配置任务正在进行，请等待完成");
+    if (configured())
+      throw new HttpError(
+        409,
+        "当前已经连接邮件服务，无需再次部署；更换服务请先按迁移指南停用旧队列",
+      );
+    if (store.reminders().enabled || store.reminders().syncedRevision > 0)
+      throw new HttpError(
+        409,
+        "此看板已有云端同步历史，请先按迁移指南核对旧服务，避免重复提醒",
+      );
+  };
+  function start(task) {
+    controller = new AbortController();
+    operation = Promise.resolve()
+      .then(task)
+      .catch(() => {
+        state = {
+          ...state,
+          phase: "error",
+          authUrl: "",
+          error: `${state.step || "配置"}未完成。请检查网络、Cloudflare 授权和账户权限后重试；已创建的资源会保留并在重试时复用。`,
+        };
+      })
+      .finally(() => {
+        operation = null;
+      });
+    return snapshot();
+  }
+  async function command(args, extras = {}) {
+    return runner(process.execPath, [cli, ...args, "--config", configPath], {
+      cwd: workerDir,
+      env: {
+        ...process.env,
+        CLOUDFLARE_ACCOUNT_ID: plan?.accountId || "",
+        WRANGLER_SEND_METRICS: "false",
+        WRANGLER_LOG: "log",
+        WRANGLER_LOG_SANITIZE: "true",
+        WRANGLER_LOG_PATH: join(setupDir, "logs"),
+        CI: "true",
+        NO_COLOR: "1",
+      },
+      signal: controller.signal,
+      ...extras,
+    });
+  }
+  async function writeConfig() {
+    await mkdir(setupDir, { recursive: true, mode: 0o700 });
+    await writePrivateJson(configPath, {
+      name: plan?.name || "jobkanban-reminders",
+      ...(plan?.accountId ? { account_id: plan.accountId } : {}),
+      main: join(workerDir, "src/index.ts"),
+      compatibility_date: "2026-09-23",
+      compatibility_flags: ["nodejs_compat"],
+      workers_dev: true,
+      triggers: { crons: ["* * * * *"] },
+      ...(plan?.databaseId
+        ? {
+            d1_databases: [
+              {
+                binding: "DB",
+                database_name: plan.name,
+                database_id: plan.databaseId,
+                migrations_dir: join(workerDir, "migrations"),
+              },
+            ],
+          }
+        : {}),
+      observability: { enabled: true, logs: { invocation_logs: false } },
+    });
+  }
+  async function prepare() {
+    if (existsSync(planPath) && !plan) throw new Error("部署记录损坏");
+    await writeConfig();
+    if (!existsSync(cli)) {
+      update("preparing", "安装 Cloudflare 部署工具（首次使用可能需要数分钟）");
+      const windows = process.platform === "win32";
+      await runner(
+        windows ? process.env.ComSpec || "cmd.exe" : "npm",
+        windows
+          ? [
+              "/d",
+              "/s",
+              "/c",
+              "npm ci --include=dev --ignore-scripts --no-audit --no-fund",
+            ]
+          : [
+              "ci",
+              "--include=dev",
+              "--ignore-scripts",
+              "--no-audit",
+              "--no-fund",
+            ],
+        {
+          cwd: workerDir,
+          env: process.env,
+          signal: controller.signal,
+          timeout: 300000,
+        },
+      );
+    }
+  }
+  async function accounts() {
+    const info = parseJson(await command(["whoami", "--json"]));
+    if (!info.loggedIn || !Array.isArray(info.accounts))
+      throw new Error("未登录");
+    const result = info.accounts
+      .filter((a) => /^[a-f0-9]{32}$/.test(a.id) && typeof a.name === "string")
+      .map(({ id, name }) => ({ id, name }));
+    if (!result.length) throw new Error("没有可用账户");
+    state.accounts = result;
+    return result;
+  }
+  function connect(body) {
+    validateBody(body, ["reauthorize"]);
+    if (body.reauthorize !== undefined && typeof body.reauthorize !== "boolean")
+      throw new HttpError(400, "授权选项无效");
+    ensureAvailable();
+    update("preparing", "检查 Cloudflare 登录状态");
+    state.authUrl = "";
+    state.accounts = [];
+    return start(async () => {
+      await prepare();
+      let loggedIn = false;
+      if (!body.reauthorize) {
+        try {
+          await accounts();
+          loggedIn = true;
+        } catch {}
+      }
+      if (!loggedIn) {
+        update("authorizing", "等待你在浏览器中登录并允许授权");
+        await command(["login", "--browser=false"], {
+          timeout: 300000,
+          onOutput: (output) => {
+            const match = output.match(
+              /https:\/\/dash\.cloudflare\.com\/oauth2\/auth\?[^\s\u001b]+/,
+            );
+            if (match) state.authUrl = match[0];
+          },
+        });
+        state.authUrl = "";
+        await accounts();
+      }
+      update("ready", "Cloudflare 已连接，请选择账户并填写邮箱");
+    });
+  }
+  function deploy(body) {
+    validateBody(body, ["accountId", "sender", "authCode", "recipient"]);
+    ensureAvailable();
+    if (!state.accounts.some((a) => a.id === body.accountId))
+      throw new HttpError(400, "请先连接 Cloudflare 并选择已授权账户");
+    if (
+      !validEmail(body.sender) ||
+      !body.sender.toLowerCase().endsWith("@163.com")
+    )
+      throw new HttpError(400, "当前仅支持 163 发信邮箱");
+    if (!validEmail(body.recipient))
+      throw new HttpError(400, "请填写有效收件邮箱");
+    if (
+      typeof body.authCode !== "string" ||
+      !/^[\x21-\x7e]{6,256}$/.test(body.authCode)
+    )
+      throw new HttpError(400, "请填写有效的邮箱客户端授权码（不是登录密码）");
+    if (
+      plan &&
+      (plan.accountId !== body.accountId ||
+        plan.source !== store.reminders().source)
+    )
+      throw new HttpError(
+        409,
+        "已有部署进度属于另一账户或看板，请恢复原账户后继续",
+      );
+    const credentials = {
+      sender: body.sender,
+      code: body.authCode,
+      recipient: body.recipient,
+    };
+    update("deploying", "检查账户与部署记录");
+    return start(async () => {
+      try {
+        await prepare();
+        const authorized = await accounts();
+        if (!authorized.some((a) => a.id === body.accountId))
+          throw new Error("账户授权发生变化");
+        if (!plan) {
+          plan = {
+            accountId: body.accountId,
+            name: `jobkanban-reminders-${randomBytes(6).toString("hex")}`,
+            source: store.reminders().source,
+            token: randomBytes(32).toString("hex"),
+          };
+          await writePrivateJson(planPath, plan);
+        }
+        await writeConfig();
+        update("deploying", "创建或恢复提醒数据库");
+        if (!plan.databaseId) {
+          const databases = parseJson(await command(["d1", "list", "--json"]));
+          if (!Array.isArray(databases)) throw new Error("数据库列表无效");
+          let database = databases.find((d) => d.name === plan.name);
+          if (!database) {
+            await command(["d1", "create", plan.name, "--update-config=false"]);
+            const next = parseJson(await command(["d1", "list", "--json"]));
+            database = next.find((d) => d.name === plan.name);
+          }
+          if (!database || !/^[a-f0-9-]{36}$/.test(database.uuid))
+            throw new Error("数据库创建未确认");
+          plan.databaseId = database.uuid;
+          await writePrivateJson(planPath, plan);
+          await writeConfig();
+        }
+        update("deploying", "初始化数据库");
+        await command(["d1", "migrations", "apply", plan.name, "--remote"]);
+        update("deploying", "部署云端提醒服务与定时任务");
+        const output = await command(["deploy"]);
+        const candidates =
+          output.match(/https:\/\/[a-z0-9.-]+\.workers\.dev\b/g) || [];
+        const url = candidates.find((candidate) =>
+          new URL(candidate).hostname.startsWith(plan.name + "."),
+        );
+        if (!url)
+          throw new Error(
+            "未获得服务地址，请在 Cloudflare 开通 workers.dev 子域",
+          );
+        update("deploying", "安全上传邮箱配置");
+        await command(["secret", "bulk"], {
+          input: JSON.stringify({
+            SYNC_TOKEN: plan.token,
+            SMTP_USER: credentials.sender,
+            SMTP_AUTH_CODE: credentials.code,
+            RECIPIENT_EMAIL: credentials.recipient,
+          }),
+        });
+        credentials.code = "";
+        update("deploying", "检查云端连接并保存本机配置");
+        const response = await fetcher(url + "/status", {
+          headers: { Authorization: `Bearer ${plan.token}` },
+          signal: AbortSignal.timeout(15000),
+          redirect: "error",
+        });
+        if (!response.ok) throw new Error("云端尚未就绪");
+        const status = await response.json();
+        if (!Array.isArray(status.counts) || !Array.isArray(status.issues))
+          throw new Error("云端响应无效");
+        await activate({
+          url,
+          token: plan.token,
+          recipient: credentials.recipient,
+        });
+        state.url = url;
+        update("complete", "配置已保存。请发送测试邮件，实际收到后再开启提醒");
+      } finally {
+        credentials.code = "";
+        body.authCode = "";
+      }
+    });
+  }
+  return {
+    snapshot,
+    connect,
+    deploy,
+    idle: () => operation || Promise.resolve(),
+    close: async () => {
+      controller?.abort();
+      await operation;
+    },
+  };
+}

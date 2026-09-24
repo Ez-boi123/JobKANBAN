@@ -1,5 +1,44 @@
 export type Stage = "application" | "assessment" | "interview" | "result";
 export type DateType = "none" | "deadline" | "appointment";
+export interface ReminderSetupState {
+  phase:
+    | "idle"
+    | "preparing"
+    | "authorizing"
+    | "ready"
+    | "deploying"
+    | "complete"
+    | "error";
+  step: string;
+  error: string;
+  authUrl: string;
+  accounts: { id: string; name: string }[];
+  url: string;
+  busy: boolean;
+  configured: boolean;
+}
+export interface ReminderSettings {
+  revision: number;
+  syncedRevision: number;
+  enabled: boolean;
+  recipient: string;
+  animation: boolean;
+  muted: Record<string, boolean>;
+  configured: boolean;
+  pending: boolean;
+  lastSync: string | null;
+  error: string;
+  cloud: null | {
+    issues: {
+      id: string;
+      job_id: string;
+      state: string;
+      error: string;
+      updated: number;
+    }[];
+    counts: { state: string; count: number }[];
+  };
+}
 export interface Action {
   text: string;
   date: string;

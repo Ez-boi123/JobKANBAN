@@ -5,11 +5,312 @@
   padding: 32px;
   background: rgba(23, 35, 57, 0.3);
 }
+.job-card.is-pending-application {
+  border-color: #35936b;
+}
+.job-card.urgency-soon {
+  border-color: #bc883b;
+}
+.job-card.urgency-urgent {
+  border-color: #c95438;
+  border-width: 2px;
+  box-shadow:
+    0 0 0 2px #c9543830,
+    0 0 20px 2px #c9543838;
+}
+.job-card.urgency-overdue {
+  border-color: #ce8f82;
+}
+.job-card.urgency-stale {
+  border-color: #c7a86f;
+}
+.urgency-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #845914;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+.urgency-urgent .urgency-label,
+.urgency-overdue .urgency-label {
+  color: #aa392a;
+}
+@keyframes reminder-breathe {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px #c9543830,
+      0 0 18px 2px #c9543838;
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px #e0444452,
+      0 0 30px 8px #e044445c,
+      0 10px 28px #8f251f33;
+  }
+}
+.job-card.urgency-pulse {
+  animation: reminder-breathe 2.35s ease-in-out infinite;
+  will-change: box-shadow;
+}
+[data-reminder-motion="off"] .job-card.urgency-pulse {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .job-card.urgency-pulse {
+    animation: none;
+  }
+}
+.reminder-nav {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+}
+.reminder-sync-banner {
+  display: block;
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  text-align: left;
+  background: #fff8e9;
+  color: #805a18;
+  border: 1px solid #e4c488;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.reminder-dialog .panel-header {
+  background: #285dcb;
+  color: white;
+}
+.reminder-dialog .panel-body {
+  padding: 24px;
+}
+.reminder-state {
+  padding: 12px;
+  background: #f1f5fd;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.reminder-fields {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+}
+.reminder-fields label {
+  display: grid;
+  gap: 8px;
+}
+.reminder-fields input[type="email"] {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #c5d1e4;
+  padding: 10px;
+  border-radius: 6px;
+}
+.reminder-fields .reminder-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reminder-help {
+  color: #596c88;
+  line-height: 1.8;
+  font-size: 13px;
+}
+.reminder-rules {
+  margin: 22px 0;
+  line-height: 1.8;
+}
+.reminder-setup {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #cbdcfb;
+  background: #f8faff;
+  border-radius: 10px;
+}
+.reminder-setup h3 {
+  font-size: 17px;
+  margin-bottom: 8px;
+  color: #174793;
+}
+.setup-step {
+  margin-top: 20px;
+}
+.setup-step h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.setup-step h4 span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e6eeff;
+  color: #245dcc;
+}
+.reminder-setup a {
+  color: #245dcc;
+  text-decoration: underline;
+}
+.reminder-setup a.button {
+  color: white;
+  text-decoration: none;
+}
+.setup-progress {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px 0;
+  color: #174793;
+}
+.setup-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #cbdcfb;
+  border-top-color: #245dcc;
+  border-radius: 50%;
+  animation: setup-spin 1s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes setup-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .setup-spinner {
+    animation: none;
+  }
+}
+.reminder-rules ul {
+  padding-left: 20px;
+}
+.reminder-buttons,
+.reminder-issue {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+.reminder-issue {
+  padding: 12px;
+  border: 1px solid #e5c5a0;
+  border-radius: 6px;
+}
+.action-email-control {
+  padding: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: #f5f7fb;
+}
+.action-email-control small {
+  flex-basis: 100%;
+  color: #62718a;
+}
 .form-fieldset {
   border: 0;
   margin: 0;
   padding: 0;
   min-width: 0;
+}
+.react-form-layer .record-create {
+  width: 720px;
+  max-width: calc(100vw - 64px);
+  max-height: calc(100dvh - 64px);
+}
+.record-create > .panel-header {
+  flex-shrink: 0;
+}
+.record-create > .panel-header > .icon-button {
+  color: white;
+}
+.record-create > .panel-header > .icon-button:hover {
+  background: #ffffff20;
+}
+.record-create form,
+.record-create .form-fieldset {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.record-create form {
+  height: calc(100dvh - 132px);
+}
+.record-create .form-fieldset {
+  display: block;
+  height: 100%;
+}
+.record-create-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.modal.record-create .modal-body {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding: 0 32px 28px;
+  overscroll-behavior: contain;
+}
+.record-create .record-create-hero {
+  margin-bottom: 24px;
+}
+.record-create .record-create-hero .detail-title {
+  margin-top: 0;
+}
+.record-create-section-title {
+  font-size: 14px;
+  color: var(--detail-ink);
+  margin: 0 0 16px;
+}
+.record-create-action {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--detail-soft);
+  border: 1px solid var(--detail-line);
+  border-left: 4px solid var(--detail-accent);
+  border-radius: 8px;
+}
+.record-create-action .form-section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.record-create-action h3 {
+  color: var(--detail-ink);
+  margin: 0 0 16px;
+}
+.record-create .form-control:focus,
+.record-create .date-time-control input.form-control:focus-visible {
+  border-color: var(--detail-accent);
+  box-shadow: 0 0 0 3px var(--detail-line);
+}
+.record-create .modal-footer {
+  flex-shrink: 0;
+  padding: 18px 32px;
+}
+.record-create .modal-footer .primary {
+  background: var(--detail-accent);
+  border-color: var(--detail-accent);
+  box-shadow: none;
+}
+.record-create .modal-footer .primary:hover {
+  background: var(--detail-ink);
+  border-color: var(--detail-ink);
 }
 .form-fieldset:disabled {
   opacity: 0.7;

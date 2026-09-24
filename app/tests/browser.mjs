@@ -5,9 +5,11 @@ import { mkdtemp, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 const dir = await mkdtemp(join(tmpdir(), "jobkanban-browser-"));
+const staticDir = resolve(process.env.TEST_STATIC_DIR || "dist");
+const resultsDir = resolve(process.env.TEST_RESULTS_DIR || "test-results");
 let app = createApp({
   dbPath: join(dir, "test.sqlite"),
-  staticDir: resolve("dist"),
+  staticDir,
   clock: () => new Date("2026-09-07T16:30:00Z"),
 });
 await new Promise((r) => app.server.listen(0, "127.0.0.1", r));
@@ -43,6 +45,51 @@ try {
     1,
   );
   console.log("PASS create and reload persistence");
+  const assessmentColumn = page.locator(
+    '.kanban-column[data-stage="assessment"]',
+  );
+  await assessmentColumn
+    .getByRole("button", { name: "添加到测评", exact: true })
+    .click();
+  const assessmentCreate = page.getByRole("dialog", {
+    name: "添加测评记录",
+    exact: true,
+  });
+  await assessmentCreate
+    .getByLabel("公司", { exact: true })
+    .fill("栏位测试公司");
+  await assessmentCreate.getByLabel("岗位", { exact: true }).fill("产品经理");
+  await assessmentCreate
+    .getByRole("button", { name: "创建记录", exact: true })
+    .click();
+  await assessmentColumn
+    .getByRole("button", { name: "栏位测试公司 产品经理", exact: true })
+    .waitFor();
+
+  const resultColumn = page.locator('.kanban-column[data-stage="result"]');
+  await resultColumn
+    .getByRole("button", { name: "新建结果记录", exact: true })
+    .click();
+  const resultCreate = page.getByRole("dialog", {
+    name: "添加结果记录",
+    exact: true,
+  });
+  await resultCreate.getByLabel("公司", { exact: true }).fill("结果测试公司");
+  await resultCreate.getByLabel("岗位", { exact: true }).fill("数据分析师");
+  await resultCreate
+    .getByRole("button", { name: "创建记录", exact: true })
+    .click();
+  assert.match(await resultCreate.innerText(), /请选择求职结果/);
+  await resultCreate
+    .getByLabel("求职结果", { exact: true })
+    .selectOption("withdrawn");
+  await resultCreate
+    .getByRole("button", { name: "创建记录", exact: true })
+    .click();
+  await resultColumn
+    .getByRole("button", { name: "结果测试公司 数据分析师", exact: true })
+    .waitFor();
+  console.log("PASS column add buttons create directly in their stages");
   const card = () =>
     page.getByRole("button", {
       name: "持久化测试公司 React 工程师",
@@ -200,7 +247,7 @@ try {
   await app.close();
   app = createApp({
     dbPath: join(dir, "test.sqlite"),
-    staticDir: resolve("dist"),
+    staticDir,
   });
   await new Promise((r) => app.server.listen(0, "127.0.0.1", r));
   base = `http://127.0.0.1:${app.server.address().port}`;
@@ -210,16 +257,16 @@ try {
   assert.match(await detail().innerText(), /准备商业案例/);
   assert.match(await detail().innerText(), /已接受/);
   console.log("PASS conflict protection and server restart persistence");
-  await mkdir("test-results", { recursive: true });
+  await mkdir(resultsDir, { recursive: true });
   await page.screenshot({
     animations: "disabled",
-    path: "test-results/detail.png",
+    path: join(resultsDir, "detail.png"),
   });
   await page.keyboard.press("Escape");
   await detail().waitFor({ state: "hidden" });
   await page.screenshot({
     animations: "disabled",
-    path: "test-results/board.png",
+    path: join(resultsDir, "board.png"),
   });
   await page.setViewportSize({ width: 1200, height: 900 });
   assert.ok(
@@ -230,7 +277,7 @@ try {
   );
   await page.screenshot({
     animations: "disabled",
-    path: "test-results/board-1200.png",
+    path: join(resultsDir, "board-1200.png"),
   });
   assert.deepEqual(pageErrors, []);
   console.log("PASS Escape, desktop layout and no browser errors");

@@ -2,8 +2,11 @@ import { createServer } from "node:http";
 import { resolve, dirname, extname, relative, isAbsolute } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readFile, realpath } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import { createJob, editJob, commandJob, HttpError } from "./domain.mjs";
 import { openStore } from "./store.mjs";
+import { createReminderSync, publicReminders } from "./reminders.mjs";
+import { createReminderSetup, writePrivateJson } from "./reminder-setup.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const mime = {
@@ -103,8 +106,56 @@ export function createApp({
   dbPath = resolve(root, "../data/jobkanban.sqlite"),
   staticDir = resolve(root, "dist"),
   clock = () => new Date(),
+  reminderOptions = {},
+  setupOptions = {},
 } = {}) {
-  const store = openStore(dbPath);
+  const store = openStore(dbPath, clock);
+  const dataDir = dirname(dbPath);
+  const connectionPath = resolve(dataDir, "reminders.connection.json");
+  const connection = existsSync(connectionPath)
+    ? JSON.parse(readFileSync(connectionPath, "utf8"))
+    : {};
+  let reminders = createReminderSync(store, {
+    clock,
+    url: process.env.REMINDER_CLOUD_URL || connection.url,
+    token: process.env.REMINDER_SYNC_TOKEN || connection.token,
+    ...reminderOptions,
+  });
+  let activating = false;
+  const setup = createReminderSetup({
+    root,
+    dataDir,
+    store,
+    configured: () => reminders.configured,
+    activate: async ({ url, token, recipient }) => {
+      activating = true;
+      try {
+        await reminders.idle();
+        await writePrivateJson(connectionPath, { url, token });
+        store.reminderSettings({
+          revision: store.reminders().revision,
+          recipient,
+          enabled: false,
+        });
+        reminders = createReminderSync(store, {
+          clock,
+          ...reminderOptions,
+          url,
+          token,
+        });
+      } finally {
+        activating = false;
+      }
+    },
+    ...setupOptions,
+  });
+  const reminderState = () =>
+    publicReminders(store.reminders(), reminders.configured);
+  const timer = setInterval(() => {
+    if (!activating) void reminders.sync();
+  }, 30000);
+  timer.unref();
+  void reminders.sync();
   const server = createServer(async (req, res) => {
     const send = (status, data) => {
       res.writeHead(status, {
@@ -121,11 +172,46 @@ export function createApp({
         return send(200, { name: "JobKANBAN", status: "ok" });
       if (path === "/api/jobs" && req.method === "GET")
         return send(200, store.list());
-      if (path === "/api/jobs" && req.method === "POST") {
+      if (path === "/api/reminders" && req.method === "GET")
+        return send(200, reminderState());
+      if (path === "/api/reminders/setup" && req.method === "GET")
+        return send(200, setup.snapshot());
+      if (path === "/api/reminders/setup/connect" && req.method === "POST")
+        return send(202, setup.connect(await readBody(req)));
+      if (path === "/api/reminders/setup/deploy" && req.method === "POST")
+        return send(202, setup.deploy(await readBody(req)));
+      if (path === "/api/reminders" && req.method === "PATCH") {
+        if (setup.snapshot().busy)
+          throw new HttpError(409, "配置向导正在运行，请完成后再保存提醒设置");
+        store.reminderSettings(await readBody(req));
+        void reminders.sync();
+        return send(200, reminderState());
+      }
+      if (path === "/api/reminders/sync" && req.method === "POST") {
+        await readBody(req);
+        await reminders.sync();
+        return send(200, reminderState());
+      }
+      if (path === "/api/reminders/test" && req.method === "POST") {
+        await readBody(req);
+        const state = store.reminders();
         return send(
-          201,
-          store.save(createJob(await readBody(req), clock().toISOString())),
+          202,
+          await reminders.remote("/test", { recipient: state.recipient }),
         );
+      }
+      if (path === "/api/reminders/retry" && req.method === "POST") {
+        const body = await readBody(req);
+        if (typeof body?.id !== "string" || body.id.length > 200)
+          throw new HttpError(400, "提醒标识无效");
+        return send(200, await reminders.remote("/retry", { id: body.id }));
+      }
+      if (path === "/api/jobs" && req.method === "POST") {
+        const job = store.save(
+          createJob(await readBody(req), clock().toISOString()),
+        );
+        void reminders.sync();
+        return send(201, job);
       }
       const match = path.match(/^\/api\/jobs\/([a-zA-Z0-9-]+)(\/commands)?$/);
       if (
@@ -134,12 +220,11 @@ export function createApp({
           (req.method === "POST" && match[2]))
       ) {
         const body = await readBody(req);
-        return send(
-          200,
-          store.mutate(match[1], body?.version, (old) =>
-            (match[2] ? commandJob : editJob)(old, body, clock().toISOString()),
-          ),
+        const job = store.mutate(match[1], body?.version, (old) =>
+          (match[2] ? commandJob : editJob)(old, body, clock().toISOString()),
         );
+        void reminders.sync();
+        return send(200, job);
       }
       if (!path.startsWith("/api/") && ["GET", "HEAD"].includes(req.method))
         return await serveStatic(path, req, res, staticDir);
@@ -153,6 +238,8 @@ export function createApp({
   return {
     server,
     close: async () => {
+      clearInterval(timer);
+      await setup.close();
       await new Promise((resolve, reject) =>
         server.close((error) =>
           error && error.code !== "ERR_SERVER_NOT_RUNNING"
@@ -160,6 +247,7 @@ export function createApp({
             : resolve(),
         ),
       );
+      await reminders.idle();
       store.close();
     },
   };
@@ -169,6 +257,8 @@ if (
   process.argv[1] &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
+  const reminderEnv = resolve(root, "../data/reminders.env");
+  if (existsSync(reminderEnv)) process.loadEnvFile(reminderEnv);
   const app = createApp();
   app.server.listen(3000, "127.0.0.1", () =>
     console.log("JobKANBAN: http://127.0.0.1:3000"),

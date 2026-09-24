@@ -1,0 +1,166 @@
+# 行动提醒：窗口配置与 163 邮件部署
+
+卡片提示无需云端即可使用；**邮件默认关闭**。邮件服务与本机看板分开运行，每位用户自行部署一份。部署并成功同步后，电脑休眠或关机不影响云端调度。
+
+当前代码已做本地调度、邮件协议模拟、Workers 本地运行时和浏览器测试；**尚未完成用户账户上的 Cloudflare → 163 真实投递验证**。请先完成下面的测试，再依赖该功能。它不保证邮件准时进收件箱，也不能替代重要事项的其他提醒。
+
+## 推荐：通过应用内向导配置
+
+打开侧边栏 **提醒设置 → 配置邮件提醒**：
+
+1. 点“连接 Cloudflare”。首次使用会自动安装仓库锁定版本的部署工具，需要能连接 npm。随后点窗口中的“打开 Cloudflare 授权页”，在这台电脑的浏览器中登录并允许授权。登录成功后窗口会列出账户；多个账户时由你选择。
+2. 填入 163 发信邮箱、独立客户端授权码和收件邮箱（可与发信邮箱相同）。授权码按下方第 2 节获取。
+3. 点“部署并保存配置”。向导生成独立服务名和随机同步密钥，创建 D1、执行迁移、部署 Worker 和每分钟定时任务，并将四项密钥上传到该 Worker。不会启用正式邮件提醒或上传求职记录。
+4. 成功后无需重启，直接在设置中发一封测试邮件。收到后才开启邮件总开关并保存；继续按下方第 5 节验证关机后的投递。
+
+Cloudflare 登录账号可以是任意邮箱，SMTP 发信账号目前必须是 163。第一次使用 Cloudflare 时，如控制台要求开通 Workers 或设置 `workers.dev` 子域，先按控制台提示完成；不需要购买域名。向导不自动购买套餐。
+
+### 配置文件与重试
+
+- `data/reminders.connection.json`：自动生成的连接地址与同步密钥；重启后自动读取。
+- `data/reminder-setup/deployment.json`：本次部署的账户、资源标识、看板来源和同步密钥，供失败后复用。
+- `data/reminder-setup/wrangler.json`：该实例的部署配置。未来手动升级时，在 `reminder-worker/` 下执行 `npx wrangler deploy --config ../data/reminder-setup/wrangler.json`，不要重新创建另一个实例。
+- SMTP 授权码不会写入上述文件，也不存入浏览器持久存储；上传通过子进程标准输入完成。官方工具的经过脱敏的运行日志存放在 `data/reminder-setup/logs/`，登录凭证由 Wrangler 管理。不要公开整个数据或登录配置目录。
+- 同一时刻只运行一个配置任务。关闭弹窗后重新打开可读取进度；部署中界面会防止误关闭。停止本地服务会中断任务；重新连接同一账户并再次填写授权码可恢复。
+- 已连接的服务不会被向导自动覆盖。已有云端同步历史时也不会直接创建另一个服务，以免旧队列重复发信；迁移需按文末说明停用旧队列。
+- 仍支持手工 `data/reminders.env` 配置。系统环境变量／该文件中的连接优先于向导生成的连接配置；新用户使用向导时不需要创建这个文件。
+
+### 常见失败
+
+| 提示出现在哪一步 | 处理方式 |
+| --- | --- |
+| 下载部署工具 | 检查 npm 网络连接、Node.js 版本及项目目录写入权限，再点连接 |
+| 等待授权 | 点击窗口内授权链接，在运行看板的同一电脑完成；超时后重新连接 |
+| 没有账户或权限不足 | 在 Cloudflare 控制台核对账户，并确认有 Workers、D1 管理权限 |
+| 部署 Worker | 核对账户是否完成 Workers / workers.dev 开通，再重新填写授权码重试 |
+| 已创建资源但配置失败 | 不要删除部署记录；继续原账户重试，会复用同名资源与同步密钥 |
+| 配置成功但测试邮件失败 | 查看提醒设置里的发送状态，核对 SMTP 是否开启及授权码是否有效；需要时在该 Worker 的 Secrets 中更新授权码 |
+
+下面的命令行部署是高级用户的替代方式，已使用窗口向导的用户可直接跳到“开启与关机测试”。
+
+## 1. 本机先体验
+
+停止旧版本地服务，重新运行项目根目录的 `start.cmd`，或 `npm run dev:all`。启动器会复用正在运行的服务，因此更新后仅重新打开网页不一定能更新后端。
+
+- 侧边栏“提醒设置”：邮件总开关、接收邮箱、呼吸动效开关、测试邮件、立即同步与发送状态。
+- 卡片详情：关闭或恢复此行动的邮件，不影响卡片警示。
+- 呼吸动效尊重系统“减少动态效果”；卡片保留求职阶段配色，不自动改变列内排序。
+
+| 事项 | 邮件提醒 | 卡片静态强调 | 加强呼吸光晕 |
+| --- | --- | --- | --- |
+| 精确截止时间 | 提前 24 小时、2 小时 | 24 小时内红色边框与文字 | 2 小时内 |
+| 精确预约时间 | 提前 1 小时、15 分钟 | 1 小时内 | 15 分钟内 |
+| 只有日期 | 前一天 18:00、当天 09:00 | 前一天、当天 | 不播放 |
+
+所有规则以北京时间解释。只有日期时不编造精确时间；日期型预约提示“具体时间待确认”。截止已过称为“逾期”，预约已过称为“待更新”，两者都停止呼吸。
+
+## 2. 准备账号与授权码
+
+需要自己的 Cloudflare 账户与 163 邮箱，不需要购买域名。Cloudflare 为 Worker 提供 `workers.dev` 地址；免费额度、账户开通条件和网络可达性以实际账户为准，不承诺零费用或所有地区可用。
+
+在 163 网页邮箱的“设置 → POP/SMTP/IMAP”开启 SMTP 客户端服务，按账户提示完成验证并生成一个**独立客户端授权码**。不是邮箱登录密码。流程见[网易官方帮助](https://help.mail.yeah.net/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac2a5feb28b66796d3b)。
+
+本实现使用 `smtp.163.com:465` 隐式 TLS，保持证书校验。是否允许从 Cloudflare 出站地址连接和投递必须通过实际账户验证；若被邮箱风控拒绝，不应关闭 TLS 校验或改用明文端口绕过。
+
+**不要把授权码发到聊天、Issue 或 Git，也不要使用 `VITE_` 前缀把密钥放进前端。**
+
+## 3. 部署独立提醒服务
+
+以下命令在项目根目录打开的终端中执行。只有本节的 `create`、`--remote`、`deploy`、`secret put` 会操作你的云端账户；本地测试不会代替这些步骤。
+
+```powershell
+cd reminder-worker
+npm ci
+npx wrangler login
+npx wrangler d1 create jobkanban-reminders
+Copy-Item wrangler.jsonc wrangler.local.jsonc
+```
+
+以上复制命令适用于 PowerShell；macOS/Linux 使用 `cp wrangler.jsonc wrangler.local.jsonc`。将创建返回的 `database_id` 填入这份被 Git 忽略的 `reminder-worker/wrangler.local.jsonc`，替换全零占位值；多个账户时同时填入自己的 `account_id`。数据库名和绑定 `DB` 保持一致。然后：
+
+```powershell
+npx wrangler d1 migrations apply jobkanban-reminders --remote --config wrangler.local.jsonc
+npm run check
+npm test
+npm run deploy
+```
+
+此时尚无发信凭证，接口会拒绝未授权请求。记录部署输出的 HTTPS `workers.dev` 地址。随后通过交互输入设置以下四项：
+
+```powershell
+npx wrangler secret put SYNC_TOKEN --config wrangler.local.jsonc
+npx wrangler secret put SMTP_USER --config wrangler.local.jsonc
+npx wrangler secret put SMTP_AUTH_CODE --config wrangler.local.jsonc
+npx wrangler secret put RECIPIENT_EMAIL --config wrangler.local.jsonc
+```
+
+| 名称 | 填入什么 |
+| --- | --- |
+| `SYNC_TOKEN` | 自行生成的随机同步密钥，至少 32 字符；本机与云端一致 |
+| `SMTP_USER` | 发信用的完整 `@163.com` 邮箱地址 |
+| `SMTP_AUTH_CODE` | 163 独立客户端授权码 |
+| `RECIPIENT_EMAIL` | 唯一允许接收提醒的邮箱，可与发信邮箱相同 |
+
+可在自己的终端运行 `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"` 生成随机同步密钥，妥善保管，不截图分享。
+
+SMTP 凭证只放在云端 Secret 中；不需要放到本地应用。一个 Worker 只绑定一个本地数据库，接口要求同步密钥且收件人固定，避免成为公开发信接口。
+
+## 4. 连接本机看板
+
+在项目根目录的 `data/` 中新建 `reminders.env`（没有 `data` 时先启动一次应用）。用文本编辑器填写：
+
+```dotenv
+REMINDER_CLOUD_URL=https://你的服务名.你的子域.workers.dev
+REMINDER_SYNC_TOKEN=与你云端SYNC_TOKEN相同的随机密钥
+```
+
+不要填写 163 授权码。本地服务启动时自动读取此文件；已有系统环境变量优先。`data/` 整体被 Git 忽略，但备份此目录时也会包含同步密钥，请妥善保管。
+
+重启本地服务，进入“提醒设置”，填写与云端 `RECIPIENT_EMAIL` 完全一致的地址，**先保持邮件总开关关闭**，保存后点击“发送测试邮件”。
+
+测试邮件会进入云端队列，由每分钟的定时任务处理；同一分钟内限制重复请求。“已排队”和“发信服务已接受”都不代表已进入收件箱，请实际检查邮箱与垃圾邮件。首次启用 Cron 配置可能需要等待生效，参见[Cloudflare Cron 文档](https://developers.cloudflare.com/workers/configuration/cron-triggers/)。
+
+若失败，在设置中查看状态；检查 SMTP 开通、独立授权码、账户风控和部署。**不要在尚未收到测试邮件时宣称发信配置成功。** 如 Workers 到 163 的连接不可用，保留本地卡片提示，另行选择允许 SMTP 的云端运行环境，不自动购买付费服务。
+
+## 5. 开启与关机测试
+
+1. 确认测试邮件已实际收到，再开启“邮件提醒”并保存。启用会同步必要的行动摘要。
+2. 等待显示“提醒安排已同步”；如提示“提醒尚未同步”，不要假定云端已按新安排工作。
+3. 新建一条明确标记为测试的预约行动，预约设在约 20 分钟后，确保提前 15 分钟的提醒点尚未到达。
+4. 同步成功后关闭本地服务或关机，在预约前 15 分钟附近检查手机邮箱。
+5. 重新打开看板，取消测试行动，并等待取消同步完成。
+
+只有第 4 步实际收到邮件，才验证了当前账户的“本机关机后提醒”。定时任务通常按分钟检查，网络、发信服务与手机邮件推送也可能延迟。
+
+## 行为与数据边界
+
+- 默认只同步启用后的未归档、有时间的待办行动。初次启用不补发旧逾期事项。
+- 新建、改期、恢复或重新启用时已进入提醒窗口，会合并跨过的提醒点立即排队一次；未来时间点继续正常安排。仅改公司、行动文字或备注，不重复安排已发送的提醒。
+- 完成、取消、归档、单条关闭或总开关关闭会撤销待发任务；改期替换旧任务。已经交给邮件服务或进入发送过程的邮件不保证能撤回。
+- 断网仍可保存岗位；本地服务每 30 秒重试同步。云端按照最后成功同步的安排工作，关闭提示只有同步成功才算生效。
+- 服务恢复只补发最近 24 小时的漏发提醒，按收件人合并，同一行动合并为一项；每分钟最多处理 10 个提醒点，积压会依次处理。更早的记为“已错过”，不每天追发。
+- 单个同步快照最多 1,000 条有时间的行动、请求最大 1 MiB，适用于本机个人看板；超过限制会显示同步失败，不会丢失本地岗位。
+- 可恢复且明确未发出的失败最多自动重试 3 次；授权/配置拒绝停止重试。结果不确定时不自动重发，需要先检查邮箱再手动重试，可能重复。超过 24 小时或已取消的提醒不能手动重试。
+- 云端只存公司、岗位、行动名称、时间、收件目标和必要标识；不存完整备注、通行证、岗位链接、面试轮次备注。**如果把通行证写入行动名称，该文字仍会同步，请将敏感内容放在备注中。**
+- 已过期行动正文至多保留 7 天，取消的正文可提前删除；发送状态与去重记录保留 30 天，源标识与同步版本继续保留以防旧请求复活。正常清理由云端定时任务执行，服务故障期间可能延后；平台自身备份保留策略另计。本机岗位记录不被清理。
+- 邮件没有本机链接或“点击即完成”；手机上的 `localhost` 无法打开电脑看板，需回本机更新。
+- 备份恢复后若本地版本落后于云端，接口会拒绝旧安排覆盖新安排。**不要手动重置版本或直接换云端地址后开启**：先停用旧 Worker 的定时触发器，确认旧队列不再发送，再部署新的独立实例或做人工核对迁移。
+- 想彻底停用：先关闭邮件总开关并等同步成功，再停用云端定时任务，最后撤销 163 授权码。单纯关电脑或关闭网页不会停用云端发信。
+
+## 开发验证
+
+项目根目录：
+
+```powershell
+npm --prefix app test
+npm --prefix app run build
+npm --prefix app run test:reminders-browser
+npm --prefix app run test:setup-browser
+npm --prefix reminder-worker ci
+npm --prefix reminder-worker run check
+npm --prefix reminder-worker test
+```
+
+Worker 测试自动做 dry-run 构建，使用内存 SQLite 和本地 Workers/D1，不发送真实邮件。不要在自动化测试中放入真实授权码。运行时密钥类型由占位示例生成，示例不是实际配置。
+
+设计依据：[Workers TCP sockets](https://developers.cloudflare.com/workers/runtime-apis/tcp-sockets/)、[Workers 最佳实践](https://developers.cloudflare.com/workers/best-practices/workers-best-practices/)、[D1 批量事务](https://developers.cloudflare.com/d1/worker-api/d1-database/)。TLS 接口支持不等于真实邮箱接受投递。

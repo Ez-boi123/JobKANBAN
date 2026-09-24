@@ -328,7 +328,7 @@ export function commandJob(old, body, now) {
 }
 
 export function createJob(body, now) {
-  validateBody(body, basics);
+  validateBody(body, [...basics, "stage", "status", "resultType"]);
   const job = {
     id: randomUUID(),
     company: "",
@@ -364,5 +364,41 @@ export function createJob(body, now) {
     rounds: [],
   };
   applyBasics(job, body);
+  if ("stage" in body) {
+    const stage = readString(body.stage, "求职阶段");
+    if (stage !== "result" && !Object.hasOwn(stages, stage))
+      fail("求职阶段无效");
+    job.stage = stage;
+    if (stage === "result") {
+      const status =
+        "status" in body ? readString(body.status, "求职结果") : "";
+      const resultType =
+        "resultType" in body ? readString(body.resultType, "求职结果") : "";
+      const result = resultType || status;
+      if (!Object.hasOwn(results, result)) fail("请选择有效求职结果");
+      if (status && ![result, results[result]].includes(status))
+        fail("求职结果与状态不一致");
+      job.resultType = result;
+      job.status = results[result];
+      job.offerDecision = result === "offer" ? "pending" : "";
+    } else {
+      const status = readString(
+        "status" in body
+          ? body.status
+          : stage === "application"
+            ? "待投递"
+            : "待安排",
+        "阶段状态",
+      );
+      if (!stages[stage].includes(status)) fail("阶段与状态不匹配");
+      const resultType =
+        "resultType" in body ? readString(body.resultType, "求职结果") : "";
+      if (resultType) fail("仅结果阶段可以设置求职结果");
+      job.status = status;
+    }
+    job.history[0].text = `直接添加到${stageNames[stage]}阶段。`;
+  } else if ("status" in body || "resultType" in body) {
+    fail("请先选择求职阶段");
+  }
   return job;
 }

@@ -11,12 +11,13 @@ import {
 } from "./time";
 import { Icon } from "./Icon";
 import { FormSelect } from "./FormSelect";
+import { urgency } from "../../shared/reminders.mjs";
 interface Props {
   jobs: Job[];
   archived: boolean;
   now: Date;
   onOpen: (j: Job) => void;
-  onNew: () => void;
+  onNew: (stage?: Stage) => void;
   onArchiveView: (v: boolean) => void;
   onProgress: (j: Job, stage: Stage) => void;
 }
@@ -125,7 +126,7 @@ export function Board({
             </text>
           </svg>
         </div>
-        <button className="button primary" onClick={onNew}>
+        <button className="button primary" onClick={() => onNew()}>
           <Icon name="plus" />
           新建求职记录
         </button>
@@ -318,7 +319,7 @@ export function Board({
               <button
                 className="icon-button"
                 aria-label={`新建${stage.name}记录`}
-                onClick={onNew}
+                onClick={() => onNew(stage.id)}
               >
                 <Icon name="plus" />
               </button>
@@ -329,7 +330,7 @@ export function Board({
                 .map((j) => (
                   <article
                     key={j.id}
-                    className={`job-card ${overdue(j, now) ? "has-overdue" : ""}`}
+                    className={`job-card ${j.stage === "application" && j.status === "待投递" ? "is-pending-application" : ""} urgency-${urgency(j, +now).level} ${urgency(j, +now).pulse ? "urgency-pulse" : ""} ${overdue(j, now) ? "has-overdue" : ""}`}
                     role="button"
                     tabIndex={0}
                     aria-label={`${j.company} ${j.role}`}
@@ -370,6 +371,12 @@ export function Board({
                     <div
                       className={`next-action ${overdue(j, now) ? "is-overdue" : stale(j, now) ? "is-stale" : ""}`}
                     >
+                      {urgency(j, +now).label && (
+                        <div className="urgency-label">
+                          <Icon name="clock" size={13} />
+                          {urgency(j, +now).label}
+                        </div>
+                      )}
                       <span className="ticket-notch ticket-notch-left" />
                       <span className="ticket-notch ticket-notch-right" />
                       <div
@@ -403,9 +410,13 @@ export function Board({
               {!rows.some((j) => j.stage === stage.id) && (
                 <div className="column-empty">暂无记录</div>
               )}
-              <button className="column-add-row" onClick={onNew}>
+              <button
+                className="column-add-row"
+                aria-label={`添加到${stage.name}`}
+                onClick={() => onNew(stage.id)}
+              >
                 <Icon name="plus" />
-                添加记录
+                添加到{stage.name}
               </button>
             </div>
           </section>
@@ -429,7 +440,7 @@ export function Board({
             </p>
             <button
               className="button primary"
-              onClick={hasFilter ? clear : onNew}
+              onClick={hasFilter ? clear : () => onNew()}
             >
               {hasFilter ? "清除筛选" : "添加第一条记录"}
             </button>

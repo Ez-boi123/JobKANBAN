@@ -1,4 +1,4 @@
-import type { Job } from "./types";
+import type { Job, ReminderSettings, ReminderSetupState } from "./types";
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -30,6 +30,27 @@ async function request<T>(
   return data;
 }
 export const api = {
+  reminderSetup: () => request<ReminderSetupState>("/api/reminders/setup"),
+  connectReminderCloud: (reauthorize = false) =>
+    request<ReminderSetupState>("/api/reminders/setup/connect", "POST", {
+      reauthorize,
+    }),
+  deployReminderCloud: (data: {
+    accountId: string;
+    sender: string;
+    recipient: string;
+    authCode: string;
+  }) =>
+    request<ReminderSetupState>("/api/reminders/setup/deploy", "POST", data),
+  reminders: () => request<ReminderSettings>("/api/reminders"),
+  saveReminders: (data: Record<string, unknown>) =>
+    request<ReminderSettings>("/api/reminders", "PATCH", data),
+  syncReminders: () =>
+    request<ReminderSettings>("/api/reminders/sync", "POST", {}),
+  testReminder: () =>
+    request<{ message: string }>("/api/reminders/test", "POST", {}),
+  retryReminder: (id: string) =>
+    request<{ message: string }>("/api/reminders/retry", "POST", { id }),
   list: () => request<Job[]>("/api/jobs"),
   create: (data: unknown) => request<Job>("/api/jobs", "POST", data),
   edit: (job: Job, data: Record<string, unknown>) =>

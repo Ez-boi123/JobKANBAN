@@ -17,6 +17,8 @@ interface Props {
   onEdit: () => void;
   onProgress: () => void;
   onCommand: (type: string, data?: Record<string, unknown>) => void;
+  reminderMuted?: boolean;
+  onReminderToggle?: () => void;
 }
 export function Detail({
   job: j,
@@ -26,6 +28,8 @@ export function Detail({
   onEdit,
   onProgress,
   onCommand,
+  reminderMuted,
+  onReminderToggle,
 }: Props) {
   const theme = j.stage === "result" ? j.resultType : j.stage,
     offer = j.resultType === "offer",
@@ -76,6 +80,15 @@ export function Detail({
           </div>
         </header>
         <div className="panel-body">
+          {j.action && j.date && !j.archived && onReminderToggle && (
+            <div className="action-email-control">
+              <span>此行动的邮件提醒{reminderMuted ? "已设为关闭" : "跟随总开关"}</span>
+              <button className="button secondary" disabled={busy} onClick={onReminderToggle}>
+                {reminderMuted ? "允许邮件提醒" : "关闭此行动邮件"}
+              </button>
+              <small>更改需同步云端后生效；卡片提示不受影响。</small>
+            </div>
+          )}
           {j.archived && (
             <div className="archived-banner">
               <Icon name="archive" />
