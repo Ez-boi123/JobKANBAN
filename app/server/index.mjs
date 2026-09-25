@@ -5,7 +5,11 @@ import { readFile, realpath } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import { createJob, editJob, commandJob, HttpError } from "./domain.mjs";
 import { openStore } from "./store.mjs";
-import { createReminderSync, publicReminders } from "./reminders.mjs";
+import {
+  createReminderSync,
+  publicReminders,
+  cloudPayload,
+} from "./reminders.mjs";
 import { createReminderSetup, writePrivateJson } from "./reminder-setup.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -115,18 +119,49 @@ export function createApp({
   const connection = existsSync(connectionPath)
     ? JSON.parse(readFileSync(connectionPath, "utf8"))
     : {};
-  let reminders = createReminderSync(store, {
-    clock,
+  let activeConnection = {
     url: process.env.REMINDER_CLOUD_URL || connection.url,
     token: process.env.REMINDER_SYNC_TOKEN || connection.token,
     ...reminderOptions,
-  });
+  };
+  let reminders = createReminderSync(store, { clock, ...activeConnection });
   let activating = false;
   const setup = createReminderSetup({
     root,
     dataDir,
     store,
     configured: () => reminders.configured,
+    connection: () => activeConnection,
+    pauseForUpdate: async () => {
+      await reminders.idle();
+      store.reminderSettings({
+        revision: store.reminders().revision,
+        enabled: false,
+      });
+      // Confirm a disabled snapshot even when mail has never been enabled.
+      const paused = store.reminders();
+      const acknowledgement = await reminders.remote(
+        "/sync",
+        cloudPayload(paused),
+      );
+      if (acknowledgement.revision !== paused.revision)
+        throw new Error("停用版本未确认");
+      store.reminderSyncResult({
+        syncedRevision: paused.revision,
+        lastSync: clock().toISOString(),
+        error: "",
+      });
+      await reminders.sync();
+      const state = store.reminders();
+      if (state.error || state.revision !== state.syncedRevision)
+        throw new Error("旧队列停用尚未确认");
+      if (
+        state.cloud?.counts.some(
+          (c) => ["pending", "sending"].includes(c.state) && c.count > 0,
+        )
+      )
+        throw new Error("仍有测试邮件或在途邮件，请稍后重试");
+    },
     activate: async ({ url, token, recipient }) => {
       activating = true;
       try {
@@ -143,14 +178,17 @@ export function createApp({
           url,
           token,
         });
+        activeConnection = { ...activeConnection, url, token };
       } finally {
         activating = false;
       }
     },
     ...setupOptions,
   });
-  const reminderState = () =>
-    publicReminders(store.reminders(), reminders.configured);
+  const reminderState = () => ({
+    ...publicReminders(store.reminders(), reminders.configured),
+    configurationPending: setup.updatePending(),
+  });
   const timer = setInterval(() => {
     if (!activating) void reminders.sync();
   }, 30000);
@@ -180,10 +218,18 @@ export function createApp({
         return send(202, setup.connect(await readBody(req)));
       if (path === "/api/reminders/setup/deploy" && req.method === "POST")
         return send(202, setup.deploy(await readBody(req)));
+      if (path === "/api/reminders/setup/edit" && req.method === "POST")
+        return send(202, setup.edit(await readBody(req)));
       if (path === "/api/reminders" && req.method === "PATCH") {
         if (setup.snapshot().busy)
           throw new HttpError(409, "配置向导正在运行，请完成后再保存提醒设置");
-        store.reminderSettings(await readBody(req));
+        const body = await readBody(req);
+        if (body?.enabled && setup.updatePending())
+          throw new HttpError(
+            409,
+            "邮箱修改尚未完成，请在修改邮件配置中重试后再开启提醒",
+          );
+        store.reminderSettings(body);
         void reminders.sync();
         return send(200, reminderState());
       }
@@ -193,6 +239,8 @@ export function createApp({
         return send(200, reminderState());
       }
       if (path === "/api/reminders/test" && req.method === "POST") {
+        if (setup.snapshot().busy || setup.updatePending())
+          throw new HttpError(409, "请先完成邮件配置修改");
         await readBody(req);
         const state = store.reminders();
         return send(
@@ -201,6 +249,8 @@ export function createApp({
         );
       }
       if (path === "/api/reminders/retry" && req.method === "POST") {
+        if (setup.snapshot().busy || setup.updatePending())
+          throw new HttpError(409, "请先完成邮件配置修改");
         const body = await readBody(req);
         if (typeof body?.id !== "string" || body.id.length > 200)
           throw new HttpError(400, "提醒标识无效");

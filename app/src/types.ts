@@ -16,8 +16,19 @@ export interface ReminderSetupState {
   url: string;
   busy: boolean;
   configured: boolean;
+  mode: "create" | "edit";
+  current: null | {
+    accountId: string;
+    name: string;
+    url: string;
+    sender: string;
+    recipient: string;
+  };
+  editError: string;
+  updatePending: boolean;
 }
 export interface ReminderSettings {
+  configurationPending?: boolean;
   revision: number;
   syncedRevision: number;
   enabled: boolean;

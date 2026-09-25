@@ -11,12 +11,16 @@ let database;
 let firstUpload = true;
 let submittedCode;
 let requestedTest = false;
+let failEdit = false;
+let deployCount = 0;
 const app = createApp({
   dbPath: join(dir, "jobs.sqlite"),
   reminderOptions: {
     url: undefined,
     token: undefined,
-    fetcher: async (url) => {
+    fetcher: async (url, options) => {
+      if (url.endsWith("/sync"))
+        return Response.json({ revision: JSON.parse(options.body).revision });
       if (url.endsWith("/test")) {
         requestedTest = true;
         return Response.json({ message: "测试邮件已排队" });
@@ -43,10 +47,18 @@ const app = createApp({
         };
         return "created";
       }
-      if (command[0] === "deploy")
+      if (command[0] === "deploy") {
+        deployCount++;
         return `https://${config.name}.example.workers.dev`;
+      }
+      if (command[0] === "secret" && command[1] === "list")
+        return JSON.stringify([{ name: "SYNC_TOKEN" }]);
       if (command[0] === "secret") {
         submittedCode = JSON.parse(options.input).SMTP_AUTH_CODE;
+        if (failEdit) {
+          failEdit = false;
+          throw new Error("private edit failure");
+        }
         if (firstUpload) {
           firstUpload = false;
           throw new Error("private upstream diagnostic");
@@ -143,6 +155,96 @@ try {
     .click();
   await dialog.getByText("测试邮件已排队", { exact: true }).waitFor();
   assert.equal(requestedTest, true);
+  await dialog
+    .getByRole("button", { name: "修改邮件配置", exact: true })
+    .click();
+  await dialog
+    .getByRole("heading", { name: "修改邮件配置", exact: true })
+    .waitFor();
+  await page.waitForFunction(
+    () =>
+      document.querySelector('input[placeholder="留空保留现有发信邮箱"]')
+        ?.value === "demo@163.com",
+  );
+  assert.equal(
+    await dialog.getByLabel("邮箱客户端授权码", { exact: true }).inputValue(),
+    "",
+  );
+  await dialog
+    .getByRole("button", { name: "连接 Cloudflare", exact: true })
+    .click();
+  await dialog
+    .getByRole("status")
+    .filter({ hasText: "Cloudflare 已连接" })
+    .waitFor();
+  await dialog
+    .getByLabel("提醒收件邮箱", { exact: true })
+    .fill("changed@example.com");
+  await page.screenshot({
+    path: "test-results/reminder-edit.png",
+    animations: "disabled",
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(
+    await dialog.evaluate((el) => el.scrollWidth <= el.clientWidth),
+    true,
+  );
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  failEdit = true;
+  await dialog
+    .getByRole("button", { name: "保存邮件配置", exact: true })
+    .click();
+  await dialog
+    .getByRole("alert")
+    .filter({ hasText: "更新原服务邮箱配置未完成" })
+    .waitFor();
+  const base = `http://127.0.0.1:${app.server.address().port}`;
+  const paused = await (await fetch(base + "/api/reminders")).json();
+  assert.equal(paused.enabled, false);
+  const blocked = await fetch(base + "/api/reminders", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ enabled: true, revision: paused.revision }),
+  });
+  assert.equal(blocked.status, 409);
+  assert.equal(
+    (
+      await fetch(base + "/api/reminders/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      })
+    ).status,
+    409,
+  );
+  await dialog.getByRole("button", { name: "重试配置", exact: true }).click();
+  await dialog
+    .getByText("配置已保存。请先发送测试邮件，实际收到后再开启邮件提醒。", {
+      exact: true,
+    })
+    .waitFor();
+  assert.equal(
+    await dialog.getByLabel("接收邮箱", { exact: true }).inputValue(),
+    "changed@example.com",
+  );
+  assert.equal(
+    await dialog.getByLabel("开启邮件提醒", { exact: true }).isChecked(),
+    false,
+  );
+  assert.equal(deployCount, 2); // Initial deployment plus its retry only; editing never deploys.
+  assert.equal(submittedCode, undefined); // Blank authorization code keeps the cloud secret.
+  await dialog
+    .getByRole("button", { name: "修改邮件配置", exact: true })
+    .click();
+  await dialog
+    .getByRole("heading", { name: "修改邮件配置", exact: true })
+    .waitFor();
+  await dialog
+    .getByRole("button", { name: "返回提醒设置", exact: true })
+    .click();
+  await dialog
+    .getByRole("button", { name: "修改邮件配置", exact: true })
+    .waitFor();
   assert.deepEqual(errors, []);
   console.log(
     "PASS in-app setup, safe failure, retry, credential clearing and test-mail handoff (all cloud operations mocked)",

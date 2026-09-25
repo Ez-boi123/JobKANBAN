@@ -31,9 +31,10 @@ async function request<T>(
 }
 export const api = {
   reminderSetup: () => request<ReminderSetupState>("/api/reminders/setup"),
-  connectReminderCloud: (reauthorize = false) =>
+  connectReminderCloud: (reauthorize = false, edit = false) =>
     request<ReminderSetupState>("/api/reminders/setup/connect", "POST", {
       reauthorize,
+      edit,
     }),
   deployReminderCloud: (data: {
     accountId: string;
@@ -42,6 +43,12 @@ export const api = {
     authCode: string;
   }) =>
     request<ReminderSetupState>("/api/reminders/setup/deploy", "POST", data),
+  editReminderCloud: (data: {
+    accountId: string;
+    sender: string;
+    recipient: string;
+    authCode: string;
+  }) => request<ReminderSetupState>("/api/reminders/setup/edit", "POST", data),
   reminders: () => request<ReminderSettings>("/api/reminders"),
   saveReminders: (data: Record<string, unknown>) =>
     request<ReminderSettings>("/api/reminders", "PATCH", data),

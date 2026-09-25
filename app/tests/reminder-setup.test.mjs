@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, readdir } from "node:fs/promises";
+import { mkdtemp, readFile, rm, readdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   createReminderSetup,
   runSetupCommand,
@@ -32,8 +33,12 @@ function fakeCloud({ failSecretsOnce = false, loggedIn = true } = {}) {
   const calls = [];
   let db;
   let secretAttempts = 0;
+  let failUpdates = false;
   return {
     calls,
+    failUpdates: (value) => {
+      failUpdates = value;
+    },
     runner: async (_command, args, options) => {
       const command = args.slice(1, args.indexOf("--config"));
       const config = JSON.parse(await readFile(args.at(-1), "utf8"));
@@ -60,7 +65,12 @@ function fakeCloud({ failSecretsOnce = false, loggedIn = true } = {}) {
       }
       if (command[0] === "deploy")
         return `https://${config.name}.test-account.workers.dev`;
-      if (command[0] === "secret" && failSecretsOnce && secretAttempts++ === 0)
+      if (command[0] === "secret" && command[1] === "list")
+        return JSON.stringify([{ name: "SYNC_TOKEN" }]);
+      if (
+        command[0] === "secret" &&
+        (failUpdates || (failSecretsOnce && secretAttempts++ === 0))
+      )
         throw new Error(`never reveal ${authCode}`);
       return "done";
     },
@@ -71,6 +81,7 @@ async function fixture(t, cloudOptions) {
   t.after(() => rm(dir, { recursive: true, force: true }));
   const cloud = fakeCloud(cloudOptions);
   let saved;
+  const runtime = { pauseFailure: false, pauses: 0 };
   const storeState = {
     source: "local-source",
     revision: 0,
@@ -79,10 +90,17 @@ async function fixture(t, cloudOptions) {
   };
   const make = () =>
     createReminderSetup({
-      root: resolve("."),
+      root: fileURLToPath(new URL("../", import.meta.url)),
       dataDir: dir,
       store: { reminders: () => storeState },
       configured: () => !!saved,
+      connection: () => saved,
+      legacyConfigPath: join(dir, "legacy.jsonc"),
+      pauseForUpdate: async () => {
+        runtime.pauses++;
+        storeState.enabled = false;
+        if (runtime.pauseFailure) throw new Error("offline");
+      },
       activate: async (value) => {
         saved = value;
       },
@@ -101,6 +119,7 @@ async function fixture(t, cloudOptions) {
     make,
     body,
     storeState,
+    runtime,
     get saved() {
       return saved;
     },
@@ -199,6 +218,113 @@ test("wizard rejects invalid input, unselected accounts and existing cloud histo
   assert.throws(() => setup.deploy(f.body()), /同步历史/);
 });
 
+test("existing setup updates mail in place without replacing its token or creating resources", async (t) => {
+  const f = await fixture(t);
+  const setup = f.make();
+  setup.connect({});
+  await setup.idle();
+  setup.deploy(f.body());
+  await setup.idle();
+  const original = { ...f.saved };
+  const start = f.cloud.calls.length;
+  setup.connect({ edit: true });
+  await setup.idle();
+  assert.equal(setup.snapshot().current.sender, "example@163.com");
+  assert.throws(
+    () => setup.edit({ ...f.body(), accountId: "b".repeat(32) }),
+    /原服务所属/,
+  );
+  assert.throws(
+    () => setup.edit({ ...f.body(), sender: "new@163.com", authCode: "" }),
+    /必须填写/,
+  );
+  setup.edit({ ...f.body(), recipient: "new@example.com", authCode: "" });
+  await setup.idle();
+  assert.equal(setup.snapshot().phase, "complete");
+  assert.equal(f.saved.url, original.url);
+  assert.equal(f.saved.token, original.token);
+  assert.equal(f.saved.recipient, "new@example.com");
+  assert.equal(f.runtime.pauses, 1);
+  const updates = f.cloud.calls.slice(start);
+  assert.ok(!updates.some((c) => ["deploy", "d1"].includes(c.command[0])));
+  const secrets = JSON.parse(
+    updates.find((c) => c.command[1] === "bulk").input,
+  );
+  assert.equal(secrets.RECIPIENT_EMAIL, "new@example.com");
+  assert.ok(!("SYNC_TOKEN" in secrets));
+  assert.ok(!("SMTP_AUTH_CODE" in secrets));
+  assert.equal(setup.updatePending(), false);
+  assert.ok(!JSON.stringify(setup.snapshot()).includes(original.token));
+});
+
+test("mail update stops before secrets on sync failure and retains repair lock after upload failure", async (t) => {
+  const f = await fixture(t);
+  let setup = f.make();
+  setup.connect({});
+  await setup.idle();
+  setup.deploy(f.body());
+  await setup.idle();
+  setup.connect({ edit: true });
+  await setup.idle();
+  f.runtime.pauseFailure = true;
+  const before = f.cloud.calls.filter((c) => c.command[1] === "bulk").length;
+  setup.edit(f.body());
+  await setup.idle();
+  assert.equal(setup.snapshot().phase, "error");
+  assert.equal(
+    f.cloud.calls.filter((c) => c.command[1] === "bulk").length,
+    before,
+  );
+  f.runtime.pauseFailure = false;
+  f.cloud.failUpdates(true);
+  setup.edit(f.body());
+  await setup.idle();
+  assert.equal(setup.updatePending(), true);
+  assert.ok(!JSON.stringify(setup.snapshot()).includes(authCode));
+  setup = f.make();
+  assert.equal(setup.updatePending(), true);
+  setup.connect({ edit: true });
+  await setup.idle();
+  f.cloud.failUpdates(false);
+  assert.throws(
+    () => setup.edit({ ...f.body(), authCode: "" }),
+    /上次修改涉及发信凭证/,
+  );
+  setup.edit({ ...f.body(), sender: "replacement@163.com" });
+  await setup.idle();
+  assert.equal(setup.snapshot().phase, "complete");
+  assert.equal(setup.updatePending(), false);
+  assert.equal(setup.snapshot().current.sender, "replacement@163.com");
+});
+
+test("legacy manual config is editable but mismatched target cannot receive secrets", async (t) => {
+  const f = await fixture(t);
+  let setup = f.make();
+  setup.connect({});
+  await setup.idle();
+  setup.deploy(f.body());
+  await setup.idle();
+  const target = setup.snapshot().current;
+  const planPath = join(f.dir, "reminder-setup/deployment.json");
+  await rm(planPath);
+  await writeFile(
+    join(f.dir, "legacy.jsonc"),
+    `{// original manual deployment\n"name":"${target.name}","account_id":"${accountId}",}`,
+  );
+  setup = f.make();
+  assert.equal(setup.snapshot().current.name, target.name);
+  setup.connect({ edit: true });
+  await setup.idle();
+  setup.edit({ ...f.body(), sender: "", authCode: "" });
+  await setup.idle();
+  assert.equal(setup.snapshot().phase, "complete");
+  await writeFile(
+    join(f.dir, "legacy.jsonc"),
+    JSON.stringify({ name: "another-service", account_id: accountId }),
+  );
+  assert.throws(() => setup.connect({ edit: true }), /不一致/);
+});
+
 test("HTTP wizard uses same-origin checks, saves private connection and works after restart", async (t) => {
   const dir = await mkdtemp(join(tmpdir(), "jobkanban-setup-api-"));
   const cloud = fakeCloud();
@@ -264,6 +390,8 @@ test("HTTP wizard uses same-origin checks, saves private connection and works af
   assert.equal(privateConfig.token.length, 64);
   assert.ok(!JSON.stringify(settings).includes(privateConfig.token));
   assert.equal((await request("/data/reminders.connection.json")).status, 404);
+  // Simulate interruption after an upload started; the repair lock survives restart.
+  await writeFile(join(dir, "reminder-setup/mail-update.pending.json"), "{}");
   await app.close();
   app = createApp({
     dbPath: join(dir, "jobs.sqlite"),
@@ -275,5 +403,15 @@ test("HTTP wizard uses same-origin checks, saves private connection and works af
   assert.equal(
     (await (await request("/api/reminders")).json()).configured,
     true,
+  );
+  assert.equal(
+    (await (await request("/api/reminders")).json()).configurationPending,
+    true,
+  );
+  assert.equal((await request("/api/reminders/test", {})).status, 409);
+  assert.equal(
+    (await request("/api/reminders/setup/edit", {}, "https://example.com"))
+      .status,
+    400,
   );
 });

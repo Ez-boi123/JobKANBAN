@@ -34,6 +34,7 @@ export function ReminderSettings({
     [error, setError] = useState("");
   const [setupBusy, setSetupBusy] = useState(false);
   const [showSetup, setShowSetup] = useState(!state.configured);
+  const [editing, setEditing] = useState(false);
   async function run(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -82,8 +83,27 @@ export function ReminderSettings({
           <p className="reminder-state" role="status">
             {reminderStatus(state)}
           </p>
+          {state.configurationPending && !showSetup && (
+            <p role="alert" className="form-error-banner">
+              邮件配置修改尚未完成，请点击“修改邮件配置”继续处理；完成前不能开启或测试邮件。
+            </p>
+          )}
+          {state.configured && !showSetup && (
+            <button
+              className="button secondary"
+              disabled={busy}
+              onClick={() => {
+                setEditing(true);
+                setShowSetup(true);
+                setMessage("");
+              }}
+            >
+              修改邮件配置
+            </button>
+          )}
           {showSetup && (
             <ReminderSetup
+              editing={editing}
               onBusy={setSetupBusy}
               onComplete={(next) => {
                 onChange(next);
@@ -101,6 +121,27 @@ export function ReminderSettings({
               }}
             />
           )}
+          {showSetup && editing && (
+            <button
+              className="button ghost"
+              disabled={busy || setupBusy}
+              onClick={() =>
+                void run(async () => {
+                  const next = await api.reminders();
+                  onChange(next);
+                  setDraft({
+                    enabled: next.enabled,
+                    recipient: next.recipient,
+                    animation: next.animation,
+                    revision: next.revision,
+                  });
+                  setShowSetup(false);
+                })
+              }
+            >
+              返回提醒设置
+            </button>
+          )}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -113,13 +154,13 @@ export function ReminderSettings({
             }}
           >
             <fieldset
-              disabled={busy || setupBusy}
+              disabled={busy || setupBusy || (editing && showSetup)}
               className="form-fieldset reminder-fields"
             >
               <label className="reminder-check">
                 <input
                   type="checkbox"
-                  disabled={!state.configured}
+                  disabled={!state.configured || state.configurationPending}
                   checked={draft.enabled}
                   onChange={(e) =>
                     setDraft({ ...draft, enabled: e.target.checked })
@@ -131,6 +172,7 @@ export function ReminderSettings({
                 接收邮箱
                 <input
                   type="email"
+                  readOnly={state.configured}
                   autoComplete="email"
                   maxLength={254}
                   required={draft.enabled}
@@ -142,7 +184,7 @@ export function ReminderSettings({
                 />
               </label>
               <p className="reminder-help">
-                须与云端收件地址一致。启用会同步公司、岗位、行动名称和时间，不同步备注、岗位链接或测评通行证。请勿将敏感信息写入行动名称。
+                更换收件邮箱请使用“修改邮件配置”，会同时更新云端与本机地址。启用会同步公司、岗位、行动名称和时间，不同步备注、岗位链接或测评通行证。请勿将敏感信息写入行动名称。
               </p>
               <label className="reminder-check">
                 <input
@@ -176,7 +218,15 @@ export function ReminderSettings({
           <div className="reminder-buttons">
             <button
               className="button secondary"
-              disabled={busy || !state.configured || dirty || !state.recipient}
+              disabled={
+                busy ||
+                setupBusy ||
+                showSetup ||
+                state.configurationPending ||
+                !state.configured ||
+                dirty ||
+                !state.recipient
+              }
               onClick={() =>
                 void run(async () =>
                   setMessage((await api.testReminder()).message),
@@ -187,7 +237,9 @@ export function ReminderSettings({
             </button>
             <button
               className="button secondary"
-              disabled={busy || !state.configured}
+              disabled={
+                busy || setupBusy || (editing && showSetup) || !state.configured
+              }
               onClick={() =>
                 void run(async () => {
                   const next = await api.syncReminders();
